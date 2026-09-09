@@ -22,8 +22,10 @@
     logo: '',                  // URL of the monogram PNG (transparent bg). Blank = no logo plate.
     pagePath: '',              // e.g. '/seven-centers'. Blank = mount on any page this script loads on.
     topOffset: 0,              // px — height of the Wix header to keep clear. 0 if the header is hidden.
-    mountSelector: '',         // where to insert the content. Blank = auto-detect Wix's page container.
+    mountSelector: '',         // where to insert the content. Blank = document.body (see note below).
     collapseWixPage: true,     // shrink the blank Wix page container so there is no gap
+    fixWixHeader: true,        // pin the Wix header so site nav stays visible down the whole page
+    hideWixFooter: true,       // hide the Wix footer — this page ends with its own contact block
     order: 'crown-first',      // 'crown-first' (matches the logo) or 'root-first' (traditional ascent)
     sound: true,               // per-chakra tones
     name: 'Kyle Hagemann',
@@ -137,7 +139,7 @@
     '@media (max-width:760px){#khl-spine button{width:32px;height:40px}#khl-spine .th{height:280px}#khl-spine .tip{display:none}}',
 
     /* hero */
-    '#khl-hero{min-height:100svh;display:grid;align-items:center;grid-template-columns:1.15fr .85fr;gap:clamp(2rem,6vw,5rem);padding-top:calc(6rem + ' + (CFG.topOffset|0) + 'px);padding-bottom:4rem;position:relative}',
+    '#khl-hero{min-height:100svh;display:grid;align-items:center;grid-template-columns:1.15fr .85fr;gap:clamp(2rem,6vw,5rem);padding-top:calc(6rem + var(--khl-top,0px));padding-bottom:4rem;position:relative}',
     '#khl-hero h1{font-size:clamp(2.8rem,7.4vw,6rem);line-height:.98}',
     '#khl-hero h1 em{font-style:italic;color:var(--k);transition:color .8s ease}',
     '#khl-hero .sub{color:var(--ink2);max-width:38ch;margin-top:1.6rem;font-size:clamp(1rem,1.6vw,1.12rem)}',
@@ -208,19 +210,31 @@
     '}'
   ].join('\n');
 
-  /* Wix's page-content container — content is inserted here so the site header
-     stays above it and the site footer below it, like any normal page. */
-  var WIX_HOSTS = ['#SITE_PAGES', '#PAGES_CONTAINER', '[data-testid="pages-container"]', 'main#PAGES_CONTAINER'];
-  var WIX_COLLAPSE = WIX_HOSTS.join(',') + '{min-height:0!important;height:auto!important}';
+  /* IMPORTANT: content is appended to <body>, NOT into Wix's page container.
+     A Wix site is a React app rooted at #SITE_CONTAINER, and anything injected
+     inside that tree is destroyed the moment React re-renders — the page flashes,
+     then goes blank. Body-level siblings sit outside React's tree and survive.
+     The collapse rules then close the gap the emptied Wix page leaves behind. */
+  var WIX_PAGES = '#SITE_PAGES,#PAGES_CONTAINER,[data-testid="pages-container"]';
+
+  function wixCollapseCss(){
+    var css = WIX_PAGES + '{min-height:0!important;height:0!important;overflow:hidden!important}' +
+              '#SITE_CONTAINER{min-height:0!important}';
+    if(CFG.hideWixFooter) css += '#SITE_FOOTER{display:none!important}';
+    if(CFG.fixWixHeader)  css += '#SITE_HEADER{position:fixed!important;top:0!important;left:0!important;right:0!important;z-index:9500!important}';
+    return css;
+  }
+
+  /* Measured height of the Wix header, so the hero clears it. */
+  function headerHeight(){
+    var h = document.querySelector('#SITE_HEADER');
+    return h ? Math.round(h.getBoundingClientRect().height) : 0;
+  }
 
   function findHost(){
     if(CFG.mountSelector){
       var pick = document.querySelector(CFG.mountSelector);
       if(pick) return pick;
-    }
-    for(var i=0;i<WIX_HOSTS.length;i++){
-      var h = document.querySelector(WIX_HOSTS[i]);
-      if(h) return h;
     }
     return document.body;
   }
@@ -269,7 +283,7 @@
 
     var st = el('style',{id:'khl-style'}); st.textContent = CSS; document.head.appendChild(st);
     if(CFG.collapseWixPage){
-      var sc = el('style',{id:'khl-collapse'}); sc.textContent = WIX_COLLAPSE; document.head.appendChild(sc);
+      var sc = el('style',{id:'khl-collapse'}); sc.textContent = wixCollapseCss(); document.head.appendChild(sc);
     }
 
     /* ---- stage ---- */
@@ -339,6 +353,15 @@
 
     root.innerHTML = html;
     findHost().appendChild(root);
+
+    /* clear the Wix header: use the configured offset, else measure the real one */
+    function syncTop(){
+      var off = CFG.topOffset || (CFG.fixWixHeader ? headerHeight() : 0);
+      root.style.setProperty('--khl-top', off + 'px');
+    }
+    syncTop();
+    on(window, 'resize', syncTop);
+    setTimeout(syncTop, 600);   // Wix reflows its header after fonts/images land
 
     var panels = CH.map(function(c){ return document.getElementById('khl-' + c.key); });
     var texts  = panels.map(function(p){ return p.querySelector('.txt'); });
