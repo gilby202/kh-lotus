@@ -21,6 +21,7 @@
   var D = {
     logo: '',                  // legacy: a still PNG. Leave blank to use the animated mark below.
     logoVideo: 'https://cdn.jsdelivr.net/gh/gilby202/kh-lotus@main/kh-logo-@THEME@.webm',   // transparent animated mark; @THEME@ -> light|dark
+    logoAnim:  'https://cdn.jsdelivr.net/gh/gilby202/kh-lotus@main/kh-logo-@THEME@.webp',   // animated WebP (plays once) — used where WebM alpha isn't supported, e.g. iOS Safari
     logoStill: 'https://cdn.jsdelivr.net/gh/gilby202/kh-lotus@main/kh-logo-@THEME@.png',    // final frame, held after the animation ends
     logoPlate: false,          // true puts the mark on a white card instead of straight on the page
     pagePath: '',              // e.g. '/seven-centers'. Blank = mount on any page this script loads on.
@@ -151,7 +152,7 @@
     '#khl-plate video,#khl-plate img{display:block;width:auto;max-height:min(82vh,780px);max-width:clamp(300px,40vw,560px)}',
     '#khl-plate .still{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);opacity:0;transition:opacity .4s ease;pointer-events:none}',
     '#khl-plate .still.on{opacity:1}',
-    '#khl-plate video.gone{opacity:0}',
+    '#khl-plate video.gone,#khl-plate img.gone{opacity:0;transition:opacity .4s ease}',
     '@media (max-width:860px){#khl-hero{grid-template-columns:1fr;justify-items:start;gap:2.6rem}#khl-plate{justify-self:start;order:-1}#khl-plate video,#khl-plate img{max-height:min(52vh,420px);max-width:min(74vw,340px)}}',
     '#khl .cue{position:absolute;bottom:2rem;left:var(--pad);display:flex;align-items:center;gap:.8rem;font-size:.64rem;letter-spacing:.28em;text-transform:uppercase;color:var(--muted)}',
     '#khl .cue i{display:block;width:44px;height:1px;background:currentColor;transform-origin:left;animation:khl-draw 2.8s ease-in-out infinite}',
@@ -186,8 +187,22 @@
     '#khl .tone.play .wv i:nth-child(3){animation-delay:.24s}',
     '#khl .tone.play .wv i:nth-child(4){animation-delay:.36s}',
     '@keyframes khl-sing{0%,100%{height:3px}50%{height:11px}}',
-    '@media (max-width:860px){#khl .pin{align-content:end;padding-bottom:7vh}#khl .txt{max-width:100%;background:rgba(245,247,245,.82);backdrop-filter:blur(4px);padding:1rem;margin:0 -1rem;border-radius:3px}}',
-    '@media (max-width:860px) and (prefers-color-scheme:dark){#khl .txt{background:rgba(8,11,10,.82)}}',
+    /* Mobile: split the pinned view into a reserved lotus zone on top and a
+       compacted text block underneath, so the animation is never buried. */
+    '@media (max-width:860px){',
+      '#khl{--spine:40px}',
+      '#khl .pin{display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:4vh}',
+      '#khl .txt{max-width:100%;background:rgba(245,247,245,.72);backdrop-filter:blur(5px);padding:.85rem .9rem;margin:0 -.9rem;border-radius:4px}',
+      '#khl .num{font-size:.8rem;margin-bottom:.6rem}',
+      '#khl .txt h2{font-size:clamp(1.55rem,7vw,2.1rem);line-height:1.08}',
+      '#khl .txt h2 .en{font-size:.7rem;letter-spacing:.22em;margin-bottom:.5rem}',
+      '#khl .txt .bd{font-size:.9rem;line-height:1.55;margin-top:.75rem}',
+      '#khl .facts{gap:.55rem .9rem;margin-top:1rem;padding-top:.8rem}',
+      '#khl .facts span{font-size:.56rem;margin-bottom:.15rem}',
+      '#khl .facts b{font-size:.95rem}',
+      '#khl .tone{margin-top:1rem;padding:.5rem .85rem;font-size:.6rem}',
+    '}',
+    '@media (max-width:860px) and (prefers-color-scheme:dark){#khl .txt{background:rgba(8,11,10,.72)}}',
 
     /* outro */
     '#khl-out{position:relative;z-index:10;background:var(--paper);border-top:1px solid var(--soft)}',
@@ -408,6 +423,18 @@
         plate.appendChild(still);
         var go = vid.play();
         if(go && go.catch) go.catch(function(){ still.classList.add('on'); });  /* autoplay blocked */
+      } else if(CFG.logoAnim && !reduced){
+        /* No WebM alpha (iOS Safari): an animated WebP encoded with loop=1 plays
+           once and holds its last frame. Swap to the crisp PNG once it finishes. */
+        var anim = el('img', {alt: alt});
+        anim.src = url(CFG.logoAnim);
+        anim.onerror = function(){ still.classList.add('on'); anim.remove(); };
+        plate.appendChild(anim);
+        plate.appendChild(still);
+        setTimeout(function(){
+          still.classList.add('on');
+          setTimeout(function(){ anim.classList.add('gone'); }, 420);
+        }, 5400);
       } else {
         still.classList.add('on');
         still.style.position = 'static';
@@ -522,9 +549,13 @@
       W=innerWidth; H=innerHeight; dpr=Math.min(devicePixelRatio||1,2);
       cv.width=W*dpr; cv.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
       var narrow = W < 861;
+      // On mobile the pinned view reserves its top 44% for the lotus (see the
+      // mobile CSS block); centre it in that zone, below the fixed Wix header.
+      var topPx = CFG.topOffset || (CFG.fixWixHeader ? headerHeight() : 0);
+      var zone  = (H - topPx) * 0.44;
       cx = narrow ? W*0.5 : W*0.66;
-      cy = narrow ? H*0.26 : H*0.5;
-      R  = narrow ? Math.min(W,H)*0.26 : Math.min(W*0.42, H*0.40);
+      cy = narrow ? topPx + zone*0.5 : H*0.5;
+      R  = narrow ? Math.min(W*0.46, zone*0.46) : Math.min(W*0.42, H*0.40);
       tap.style.width = tap.style.height = (R*1.1)+'px';
     }
     on(window,'resize',resize); resize();
@@ -596,6 +627,18 @@
       S.spin2 -= (0.0007 + S.boost*0.006)*dir;
 
       var col = S.col, L = S.live;
+
+      // On mobile the text is bottom-anchored and its height varies per chakra,
+      // so fit the lotus to whatever room is actually left above it.
+      if(W < 861){
+        var refTxt = texts[J.idx < 0 ? 0 : J.idx];
+        var tTop = refTxt ? refTxt.getBoundingClientRect().top : H*0.55;
+        var topPx2 = parseFloat(root.style.getPropertyValue('--khl-top')) || 0;
+        var zone2 = Math.max(140, Math.min(H*0.62, tTop - topPx2));
+        cy = topPx2 + zone2*0.5;
+        R  = Math.min(W*0.46, zone2*0.44);
+      }
+
       cyDraw = cy - (1-arrival)*R*0.82;    // descends from above during the bloom
       var aScale = 0.12 + 0.88*arrival;    // seed → full bloom
       cv.classList.toggle('on', L>0.02);
