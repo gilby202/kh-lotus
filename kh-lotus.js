@@ -19,7 +19,10 @@
    * 1. CONFIG — override any of these in window.KH_LOTUS
    * ------------------------------------------------------------------ */
   var D = {
-    logo: '',                  // URL of the monogram PNG (transparent bg). Blank = no logo plate.
+    logo: '',                  // legacy: a still PNG. Leave blank to use the animated mark below.
+    logoVideo: 'https://cdn.jsdelivr.net/gh/gilby202/kh-lotus@main/kh-logo-@THEME@.webm',   // transparent animated mark; @THEME@ -> light|dark
+    logoStill: 'https://cdn.jsdelivr.net/gh/gilby202/kh-lotus@main/kh-logo-@THEME@.png',    // final frame, held after the animation ends
+    logoPlate: false,          // true puts the mark on a white card instead of straight on the page
     pagePath: '',              // e.g. '/seven-centers'. Blank = mount on any page this script loads on.
     topOffset: 0,              // px — height of the Wix header to keep clear. 0 if the header is hidden.
     mountSelector: '',         // where to insert the content. Blank = document.body (see note below).
@@ -30,7 +33,7 @@
     sound: true,               // per-chakra tones
     name: 'Kyle Hagemann',
     credential: 'Reiki Master · 500-hour RYT · Seaford, New York',
-    shopUrl: '/shop',
+    shopUrl: 'https://www.kylehagemannreiki.com/category/all-products',
     bookUrl: '/contact',
     phone: '516 503 2052',
     email: 'kylehagemannreiki@gmail.com',
@@ -143,9 +146,13 @@
     '#khl-hero h1{font-size:clamp(2.8rem,7.4vw,6rem);line-height:.98}',
     '#khl-hero h1 em{font-style:italic;color:var(--k);transition:color .8s ease}',
     '#khl-hero .sub{color:var(--ink2);max-width:38ch;margin-top:1.6rem;font-size:clamp(1rem,1.6vw,1.12rem)}',
-    '#khl-plate{justify-self:center;background:#FFF;border:1px solid var(--soft);padding:clamp(1.4rem,3vw,2.4rem);border-radius:3px;box-shadow:0 24px 60px -34px #10141359;will-change:transform}',
-    '#khl-plate img{display:block;width:auto;max-height:min(56vh,500px);max-width:clamp(120px,15vw,196px)}',
-    '@media (max-width:860px){#khl-hero{grid-template-columns:1fr;justify-items:start;gap:2.6rem}#khl-plate{justify-self:start;order:-1}#khl-plate img{max-height:280px;max-width:112px}}',
+    '#khl-plate{justify-self:center;will-change:transform;position:relative;display:grid;place-items:center}',
+    '#khl-plate.card{background:#FFF;border:1px solid var(--soft);padding:clamp(1.4rem,3vw,2.4rem);border-radius:3px;box-shadow:0 24px 60px -34px #10141359}',
+    '#khl-plate video,#khl-plate img{display:block;width:auto;max-height:min(56vh,500px);max-width:clamp(120px,15vw,196px)}',
+    '#khl-plate .still{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);opacity:0;transition:opacity .4s ease;pointer-events:none}',
+    '#khl-plate .still.on{opacity:1}',
+    '#khl-plate video.gone{opacity:0}',
+    '@media (max-width:860px){#khl-hero{grid-template-columns:1fr;justify-items:start;gap:2.6rem}#khl-plate{justify-self:start;order:-1}#khl-plate video,#khl-plate img{max-height:280px;max-width:112px}}',
     '#khl .cue{position:absolute;bottom:2rem;left:var(--pad);display:flex;align-items:center;gap:.8rem;font-size:.64rem;letter-spacing:.28em;text-transform:uppercase;color:var(--muted)}',
     '#khl .cue i{display:block;width:44px;height:1px;background:currentColor;transform-origin:left;animation:khl-draw 2.8s ease-in-out infinite}',
     '@keyframes khl-draw{0%,100%{transform:scaleX(.3);opacity:.4}50%{transform:scaleX(1);opacity:1}}',
@@ -274,6 +281,7 @@
   function mount(){
     if(mounted || !pageMatches()) return;
     mounted = true;
+    var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     /* fonts */
     if(CFG.fonts && !document.getElementById('khl-fonts')){
@@ -308,10 +316,7 @@
       '<p class="lb rv">' + esc(CFG.credential) + '</p>' +
       '<h1 class="rv">' + esc(COPY.heroLead) + '<br><em>' + esc(COPY.heroAccent) + '</em></h1>' +
       '<p class="sub rv">' + esc(COPY.heroSub) + '</p></div>' +
-      /* if the logo URL is missing or wrong, drop the plate rather than showing a broken image */
-      (CFG.logo && CFG.logo.indexOf('YOUR-FILE') === -1
-        ? '<div id="khl-plate" class="rv"><img src="' + esc(CFG.logo) + '" alt="' + esc(CFG.name) + ' monogram with the seven chakra symbols running down its center" onerror="var p=document.getElementById(\'khl-plate\'); if(p) p.style.display=\'none\';"></div>'
-        : '<div></div>') +
+      '<div id="khl-plate" class="rv' + (CFG.logoPlate ? ' card' : '') + '"></div>' +
       '<div class="cue"><i></i>' + esc(COPY.cue) + '</div></section>';
 
     html += '<section id="khl-intro"><div class="col">' +
@@ -356,6 +361,68 @@
 
     root.innerHTML = html;
     findHost().appendChild(root);
+
+    /* ---- animated mark: play once, then hold the final still ---- */
+    (function buildMark(){
+      var plate = document.getElementById('khl-plate');
+      if(!plate) return;
+      var alt = CFG.name + ' monogram with the seven chakra symbols running down its center';
+
+      function theme(){
+        return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      function url(tpl){ return tpl ? tpl.replace('@THEME@', theme()) : ''; }
+
+      /* an explicit `logo` still wins, for anyone who set one the old way */
+      if(CFG.logo && CFG.logo.indexOf('YOUR-FILE') === -1){
+        var only = el('img', {src: CFG.logo, alt: alt});
+        only.onerror = function(){ plate.style.display = 'none'; };
+        plate.appendChild(only);
+        return;
+      }
+      if(!CFG.logoVideo && !CFG.logoStill){ plate.style.display = 'none'; return; }
+
+      var still = el('img', {alt: alt, 'aria-hidden':'false'});
+      still.className = 'still';
+      still.src = url(CFG.logoStill);
+      still.onerror = function(){ if(!plate.querySelector('video')) plate.style.display = 'none'; };
+
+      var vid = null;
+      var canWebm = !!document.createElement('video').canPlayType('video/webm; codecs="vp9"');
+
+      if(CFG.logoVideo && canWebm && !reduced){
+        vid = document.createElement('video');
+        vid.src = url(CFG.logoVideo);
+        vid.muted = true; vid.defaultMuted = true;
+        vid.autoplay = true; vid.loop = false; vid.playsInline = true;
+        vid.setAttribute('muted',''); vid.setAttribute('playsinline','');
+        vid.setAttribute('aria-hidden','true');
+        vid.preload = 'auto';
+        /* hand off to the still so the held frame is crisp and the decoder is freed */
+        vid.addEventListener('ended', function(){
+          still.classList.add('on');
+          setTimeout(function(){ vid.classList.add('gone'); }, 420);
+        });
+        vid.addEventListener('error', function(){ still.classList.add('on'); });
+        plate.appendChild(vid);
+        plate.appendChild(still);
+        var go = vid.play();
+        if(go && go.catch) go.catch(function(){ still.classList.add('on'); });  /* autoplay blocked */
+      } else {
+        still.classList.add('on');
+        still.style.position = 'static';
+        still.style.transform = 'none';
+        plate.appendChild(still);
+      }
+
+      /* follow the viewer flipping their OS theme mid-visit */
+      var mq = matchMedia('(prefers-color-scheme: dark)');
+      var onTheme = function(){
+        still.src = url(CFG.logoStill);
+        if(vid && !vid.ended) vid.src = url(CFG.logoVideo);
+      };
+      if(mq.addEventListener) { mq.addEventListener('change', onTheme); teardown.push(function(){ mq.removeEventListener('change', onTheme); }); }
+    })();
 
     /* clear the Wix header: use the configured offset, else measure the real one */
     function syncTop(){
@@ -446,7 +513,6 @@
     teardown.push(stopTone);
     teardown.push(function(){ if(actx && actx.close) try{ actx.close(); }catch(e){} });
 
-    var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     if(reduced) return;
 
     /* ---- animation ---- */
