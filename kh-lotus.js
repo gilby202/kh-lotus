@@ -308,7 +308,10 @@
       '<p class="lb rv">' + esc(CFG.credential) + '</p>' +
       '<h1 class="rv">' + esc(COPY.heroLead) + '<br><em>' + esc(COPY.heroAccent) + '</em></h1>' +
       '<p class="sub rv">' + esc(COPY.heroSub) + '</p></div>' +
-      (CFG.logo ? '<div id="khl-plate" class="rv"><img src="' + esc(CFG.logo) + '" alt="' + esc(CFG.name) + ' monogram with the seven chakra symbols running down its center"></div>' : '<div></div>') +
+      /* if the logo URL is missing or wrong, drop the plate rather than showing a broken image */
+      (CFG.logo && CFG.logo.indexOf('YOUR-FILE') === -1
+        ? '<div id="khl-plate" class="rv"><img src="' + esc(CFG.logo) + '" alt="' + esc(CFG.name) + ' monogram with the seven chakra symbols running down its center" onerror="var p=document.getElementById(\'khl-plate\'); if(p) p.style.display=\'none\';"></div>'
+        : '<div></div>') +
       '<div class="cue"><i></i>' + esc(COPY.cue) + '</div></section>';
 
     html += '<section id="khl-intro"><div class="col">' +
