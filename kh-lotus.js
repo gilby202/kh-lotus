@@ -38,7 +38,7 @@
     phone: '516 503 2052',
     email: 'kylehagemannreiki@gmail.com',
     place: 'Seaford, NY 11783',
-    panelHeight: 230,          // vh per chakra — lower = faster journey
+    panelHeight: 150,          // vh per chakra — lower = faster journey
     fonts: true                // load Newsreader / Karla / Noto Sans Devanagari from Google Fonts
   };
   var CFG = D;
@@ -142,17 +142,17 @@
     '@media (max-width:760px){#khl-spine button{width:32px;height:40px}#khl-spine .th{height:280px}#khl-spine .tip{display:none}}',
 
     /* hero */
-    '#khl-hero{min-height:calc(100svh - var(--khl-top,0px));margin-top:var(--khl-top,0px);display:grid;align-items:center;grid-template-columns:1.15fr .85fr;gap:clamp(2rem,6vw,5rem);padding-top:clamp(2rem,6vh,4rem);padding-bottom:clamp(3rem,8vh,5rem);position:relative}',
+    '#khl-hero{min-height:calc(100svh - var(--khl-top,0px));margin-top:var(--khl-top,0px);display:grid;align-items:center;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(2rem,5vw,4rem);padding-top:clamp(2rem,6vh,4rem);padding-bottom:clamp(3rem,8vh,5rem);position:relative}',
     '#khl-hero h1{font-size:clamp(2.8rem,7.4vw,6rem);line-height:.98}',
     '#khl-hero h1 em{font-style:italic;color:var(--k);transition:color .8s ease}',
     '#khl-hero .sub{color:var(--ink2);max-width:38ch;margin-top:1.6rem;font-size:clamp(1rem,1.6vw,1.12rem)}',
     '#khl-plate{justify-self:center;will-change:transform;position:relative;display:grid;place-items:center}',
     '#khl-plate.card{background:#FFF;border:1px solid var(--soft);padding:clamp(1.4rem,3vw,2.4rem);border-radius:3px;box-shadow:0 24px 60px -34px #10141359}',
-    '#khl-plate video,#khl-plate img{display:block;width:auto;max-height:min(56vh,500px);max-width:clamp(120px,15vw,196px)}',
+    '#khl-plate video,#khl-plate img{display:block;width:auto;max-height:min(82vh,780px);max-width:clamp(300px,40vw,560px)}',
     '#khl-plate .still{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);opacity:0;transition:opacity .4s ease;pointer-events:none}',
     '#khl-plate .still.on{opacity:1}',
     '#khl-plate video.gone{opacity:0}',
-    '@media (max-width:860px){#khl-hero{grid-template-columns:1fr;justify-items:start;gap:2.6rem}#khl-plate{justify-self:start;order:-1}#khl-plate video,#khl-plate img{max-height:280px;max-width:112px}}',
+    '@media (max-width:860px){#khl-hero{grid-template-columns:1fr;justify-items:start;gap:2.6rem}#khl-plate{justify-self:start;order:-1}#khl-plate video,#khl-plate img{max-height:min(52vh,420px);max-width:min(74vw,340px)}}',
     '#khl .cue{position:absolute;bottom:2rem;left:var(--pad);display:flex;align-items:center;gap:.8rem;font-size:.64rem;letter-spacing:.28em;text-transform:uppercase;color:var(--muted)}',
     '#khl .cue i{display:block;width:44px;height:1px;background:currentColor;transform-origin:left;animation:khl-draw 2.8s ease-in-out infinite}',
     '@keyframes khl-draw{0%,100%{transform:scaleX(.3);opacity:.4}50%{transform:scaleX(1);opacity:1}}',
@@ -536,11 +536,13 @@
     function ease(t){ return t*t*(3-2*t); }
     function rgba(c,a){ return 'rgba('+Math.round(c[0])+','+Math.round(c[1])+','+Math.round(c[2])+','+a+')'; }
 
+    var cyDraw = 0;   // lotus vertical centre for the current frame (moves during the arrival bloom)
     function petal(a,r0,r1,half){
+      var yc = cyDraw || cy;
       var c0=Math.cos(a), s0=Math.sin(a), rm=(r0+r1)*0.55, aL=a-half, aR=a+half;
-      ctx.moveTo(cx+c0*r0, cy+s0*r0);
-      ctx.quadraticCurveTo(cx+Math.cos(aL)*rm, cy+Math.sin(aL)*rm, cx+c0*r1, cy+s0*r1);
-      ctx.quadraticCurveTo(cx+Math.cos(aR)*rm, cy+Math.sin(aR)*rm, cx+c0*r0, cy+s0*r0);
+      ctx.moveTo(cx+c0*r0, yc+s0*r0);
+      ctx.quadraticCurveTo(cx+Math.cos(aL)*rm, yc+Math.sin(aL)*rm, cx+c0*r1, yc+s0*r1);
+      ctx.quadraticCurveTo(cx+Math.cos(aR)*rm, yc+Math.sin(aR)*rm, cx+c0*r0, yc+s0*r0);
     }
 
     var motes=[];
@@ -576,16 +578,26 @@
       var tc = [lerp(RGB[i0][0],RGB[i1][0],blend), lerp(RGB[i0][1],RGB[i1][1],blend), lerp(RGB[i0][2],RGB[i1][2],blend)];
       var tn = lerp(CH[i0].draw, CH[i1].draw, blend);
 
+      // arrival bloom — as the first panel rises into place, the crown lotus
+      // descends from above the head and blooms from a seed into the full display
+      var p0r = panels[0].getBoundingClientRect();
+      var entering = p0r.top > 0 && p0r.top < innerHeight;
+      var entry = ease(clamp((innerHeight - p0r.top)/innerHeight, 0, 1));
+      var arrival = entering ? entry : 1;
+      var liveTarget = inJ ? 1 : (entering ? entry : 0);
+
       for(var k=0;k<3;k++) S.col[k] += (tc[k]-S.col[k])*0.08;
       S.n += (tn-S.n)*0.06;
       S.boost += (Math.min(vel,90)/90 - S.boost)*0.09;
-      S.live += ((inJ?1:0)-S.live)*0.07;
+      S.live += (liveTarget - S.live)*0.09;
       var breath = J.idx<0?0:Math.sin(J.p*Math.PI);
       S.energy += ((0.55+breath*0.45)-S.energy)*0.06;
       S.spin  += (0.0011 + S.boost*0.010)*dir;
       S.spin2 -= (0.0007 + S.boost*0.006)*dir;
 
       var col = S.col, L = S.live;
+      cyDraw = cy - (1-arrival)*R*0.82;    // descends from above during the bloom
+      var aScale = 0.12 + 0.88*arrival;    // seed → full bloom
       cv.classList.toggle('on', L>0.02);
       var css = 'rgb('+Math.round(col[0])+','+Math.round(col[1])+','+Math.round(col[2])+')';
       root.style.setProperty('--k', css);
@@ -595,10 +607,10 @@
 
       ctx.clearRect(0,0,W,H);
       if(L>0.01){
-        var Rr = R*(0.80 + S.energy*0.26)*(1 + S.boost*0.05);
-        var g = ctx.createRadialGradient(cx,cy,0,cx,cy,Rr*1.45);
+        var Rr = R*(0.80 + S.energy*0.26)*(1 + S.boost*0.05)*aScale;
+        var g = ctx.createRadialGradient(cx,cyDraw,0,cx,cyDraw,Rr*1.45);
         g.addColorStop(0, rgba(col,0.16*L)); g.addColorStop(0.45, rgba(col,0.06*L)); g.addColorStop(1, rgba(col,0));
-        ctx.fillStyle=g; ctx.fillRect(cx-Rr*1.5, cy-Rr*1.5, Rr*3, Rr*3);
+        ctx.fillStyle=g; ctx.fillRect(cx-Rr*1.5, cyDraw-Rr*1.5, Rr*3, Rr*3);
 
         for(var m=0;m<motes.length;m++){
           var mo=motes[m];
@@ -606,7 +618,7 @@
           if(mo.y<0) mo.y=1;
           var mr = Rr*(0.28+mo.rad*1.05), ma = mo.a + S.spin*0.4;
           ctx.beginPath();
-          ctx.arc(cx+Math.cos(ma)*mr*0.55, cy - Rr*1.2 + mo.y*Rr*2.4, mo.sz, 0, 6.2832);
+          ctx.arc(cx+Math.cos(ma)*mr*0.55, cyDraw - Rr*1.2 + mo.y*Rr*2.4, mo.sz, 0, 6.2832);
           ctx.fillStyle = rgba(col, 0.30*L*(1-Math.abs(mo.y-0.5)*1.5));
           ctx.fill();
         }
@@ -624,13 +636,13 @@
           ctx.fillStyle = rgba(col,0.07*L); ctx.fill();
           ctx.strokeStyle = rgba(col,0.34*L); ctx.lineWidth=1; ctx.stroke();
         }
-        ctx.beginPath(); ctx.arc(cx,cy,Rr*0.115,0,6.2832);
+        ctx.beginPath(); ctx.arc(cx,cyDraw,Rr*0.115,0,6.2832);
         ctx.fillStyle = rgba(col,0.13*L); ctx.fill();
         ctx.strokeStyle = rgba(col,0.6*L); ctx.lineWidth=1.2; ctx.stroke();
 
         for(var rp=ripples.length-1;rp>=0;rp--){
           var r2=ripples[rp]; r2.r += Rr*0.016; r2.a *= 0.975;
-          ctx.beginPath(); ctx.arc(cx,cy,r2.r,0,6.2832);
+          ctx.beginPath(); ctx.arc(cx,cyDraw,r2.r,0,6.2832);
           ctx.strokeStyle = rgba(col, r2.a*L); ctx.lineWidth=1; ctx.stroke();
           if(r2.a<0.01) ripples.splice(rp,1);
         }
@@ -639,9 +651,9 @@
         seed.style.opacity = (L*(0.55+S.energy*0.45)).toFixed(3);
         seed.style.color = css;
         seed.style.fontSize = (Rr*0.30).toFixed(1)+'px';
-        seed.style.transform = 'translate(-50%,-50%) translate('+cx.toFixed(1)+'px,'+cy.toFixed(1)+'px) scale('+(0.9+S.energy*0.12).toFixed(3)+')';
+        seed.style.transform = 'translate(-50%,-50%) translate('+cx.toFixed(1)+'px,'+cyDraw.toFixed(1)+'px) scale('+((0.9+S.energy*0.12)*aScale).toFixed(3)+')';
         seed.style.textShadow = '0 0 '+(Rr*0.16).toFixed(0)+'px '+rgba(col,0.35*L);
-        tap.style.left = cx+'px'; tap.style.top = cy+'px';
+        tap.style.left = cx+'px'; tap.style.top = cyDraw+'px';
         tap.style.opacity = (L*0.9).toFixed(2);
         tap.classList.toggle('on', L>0.5);
       } else {
