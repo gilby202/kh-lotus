@@ -182,20 +182,22 @@
     '#khl .tone.play .wv i:nth-child(3){animation-delay:.24s}',
     '#khl .tone.play .wv i:nth-child(4){animation-delay:.36s}',
     '@keyframes khl-sing{0%,100%{height:3px}50%{height:11px}}',
-    /* Mobile: split the pinned view into a reserved lotus zone on top and a
-       compacted text block underneath, so the animation is never buried. */
+    /* Mobile: the text is kept compact at the top so the lotus always gets a
+       real block of screen underneath it, never a clipped sliver. */
     '@media (max-width:860px){',
-      '#khl{--spine:40px}',
-      '#khl .pin{display:flex;flex-direction:column;justify-content:flex-start;padding-top:2vh;padding-bottom:2vh}',
-      '#khl .txt{max-width:100%;background:rgba(8,11,10,.9);padding:.85rem .9rem;margin:0 -.9rem;border-radius:4px}',
-      '#khl .num{font-size:.8rem;margin-bottom:.6rem}',
-      '#khl .txt h2{font-size:clamp(1.55rem,7vw,2.1rem);line-height:1.08}',
-      '#khl .txt h2 .en{font-size:.7rem;letter-spacing:.22em;margin-bottom:.5rem}',
-      '#khl .txt .bd{font-size:.9rem;line-height:1.55;margin-top:.75rem}',
-      '#khl .facts{gap:.55rem .9rem;margin-top:1rem;padding-top:.8rem}',
-      '#khl .facts span{font-size:.56rem;margin-bottom:.15rem}',
-      '#khl .facts b{font-size:.95rem}',
-      '#khl .tone{margin-top:1rem;padding:.5rem .85rem;font-size:.6rem}',
+      '#khl{--spine:34px;--pad:1rem}',
+      '#khl .pin{display:flex;flex-direction:column;justify-content:flex-start;padding-top:1.4vh;padding-bottom:0}',
+      '#khl .txt{max-width:100%;background:rgba(8,11,10,.9);padding:.7rem .8rem;margin:0 -.8rem;border-radius:4px}',
+      '#khl .num{font-size:.72rem;margin-bottom:.4rem}',
+      '#khl .num::after{max-width:70px}',
+      '#khl .txt h2{font-size:1.5rem;line-height:1.05}',
+      '#khl .txt h2 .en{font-size:.64rem;letter-spacing:.2em;margin-bottom:.35rem}',
+      '#khl .txt .bd{font-size:.82rem;line-height:1.42;margin-top:.55rem}',
+      /* three facts across in one row — stacked they ate most of the screen */
+      '#khl .facts{grid-template-columns:repeat(3,minmax(0,1fr));gap:.4rem .6rem;margin-top:.75rem;padding-top:.6rem}',
+      '#khl .facts span{font-size:.52rem;letter-spacing:.14em;margin-bottom:.1rem}',
+      '#khl .facts b{font-size:.84rem}',
+      '#khl .tone{margin-top:.75rem;padding:.42rem .7rem;font-size:.56rem;gap:.5rem}',
     '}',
 
     /* outro */
@@ -619,11 +621,13 @@
       // (100svh can end well short of it once Safari hides its toolbars).
       if(W < 861){
         var refTxt = texts[J.idx < 0 ? 0 : J.idx];
-        var tBot = refTxt ? refTxt.getBoundingClientRect().bottom : H*0.45;
-        var zoneTop = Math.max(tBot, H*0.30);
-        var zone2 = Math.max(130, H - zoneTop - 8);
+        var tBot = refTxt ? refTxt.getBoundingClientRect().bottom : H*0.52;
+        // the lotus always gets at least the bottom ~40% of the screen, and the
+        // text can never push it past 58% however long that chakra's copy runs
+        var zoneTop = Math.min(Math.max(tBot + 6, H*0.28), H*0.58);
+        var zone2 = Math.max(H*0.30, H - zoneTop - 20);
         cy = zoneTop + zone2*0.5;
-        R  = Math.min(W*0.46, zone2*0.46);
+        R  = Math.min(W*0.44, zone2*0.44);
       }
 
       cyDraw = cy - (1-arrival)*R*0.82;    // descends from above during the bloom
