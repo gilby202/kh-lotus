@@ -93,8 +93,8 @@
    * 3. STYLE
    * ------------------------------------------------------------------ */
   var CSS = [
-    '#khl{--paper:#F5F7F5;--raise:#FFF;--ink:#101413;--ink2:#3D4645;--muted:#717C7A;',
-      '--rule:#1014131F;--soft:#10141310;--k:' + CH[0].c + ';--kw:' + CH[0].c + '14;',
+    '#khl{--paper:#080B0A;--raise:#121716;--ink:#EDF1EF;--ink2:#BAC4C1;--muted:#8A9693;',
+      '--rule:#EDF1EF24;--soft:#EDF1EF12;--k:' + CH[0].c + ';--kw:' + CH[0].c + '14;',
       '--disp:"Newsreader","Iowan Old Style",Georgia,serif;',
       '--body:"Karla","Helvetica Neue",Arial,sans-serif;',
       '--deva:"Noto Sans Devanagari","Karla",sans-serif;',
@@ -103,9 +103,7 @@
       'font-family:var(--body);font-weight:300;font-size:16px;line-height:1.7;',
       'padding-right:var(--spine)}',
     /* opaque ground behind everything — the lotus canvas sits between this and the content */
-    '#khl-bg{position:fixed;inset:0;z-index:0;background:#F5F7F5;pointer-events:none}',
-    '@media (prefers-color-scheme:dark){#khl-bg{background:#080B0A}}',
-    '@media (prefers-color-scheme:dark){#khl{--paper:#080B0A;--raise:#121716;--ink:#EDF1EF;--ink2:#BAC4C1;--muted:#8A9693;--rule:#EDF1EF24;--soft:#EDF1EF12}}',
+    '#khl-bg{position:fixed;inset:0;z-index:0;background:#080B0A;pointer-events:none}',
     '#khl *,#khl *::before,#khl *::after{box-sizing:border-box}',
     '#khl h1,#khl h2,#khl h3{font-family:var(--disp);font-weight:300;margin:0;text-wrap:balance;letter-spacing:-.012em}',
     '#khl p{margin:0 0 1.1rem}',
@@ -126,19 +124,16 @@
     '#khl-tap:hover .h,#khl-tap:focus-visible .h{opacity:.75}',
 
     /* spine */
-    '#khl-spine{position:fixed;top:0;right:0;bottom:0;width:clamp(52px,6vw,84px);z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;border-left:1px solid #10141310;background:rgba(245,247,245,.7);backdrop-filter:blur(8px);transition:opacity .6s ease,transform .6s ease}',
+    '#khl-spine{position:fixed;top:0;right:0;bottom:0;width:clamp(52px,6vw,84px);z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;border-left:1px solid #EDF1EF12;background:rgba(8,11,10,.7);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:opacity .6s ease,transform .6s ease}',
     '#khl-spine.away{opacity:0;transform:translateX(100%);pointer-events:none}',
-    '@media (prefers-color-scheme:dark){#khl-spine{background:rgba(8,11,10,.7);border-left-color:#EDF1EF12}}',
-    '#khl-spine .th{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:1px;height:392px;background:#1014131F}',
-    '@media (prefers-color-scheme:dark){#khl-spine .th{background:#EDF1EF24}}',
+    '#khl-spine .th{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:1px;height:392px;background:#EDF1EF24}',
     '#khl-comet{position:absolute;top:50%;left:50%;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;border-radius:50%;will-change:transform;opacity:0;transition:opacity .5s}',
     '#khl-comet.on{opacity:1}',
     '#khl-spine button{position:relative;width:44px;height:56px;border:0;background:none;padding:0;cursor:pointer;display:grid;place-items:center}',
     '#khl-spine button svg{width:28px;height:28px;overflow:visible;transition:transform .5s cubic-bezier(.16,1,.3,1)}',
     '#khl-spine .core{transition:fill-opacity .4s}',
     '#khl-spine .pet{transition:opacity .4s}',
-    '#khl-spine .tip{position:absolute;right:calc(100% + 10px);top:50%;transform:translateY(-50%) translateX(6px);white-space:nowrap;font:500 .6rem/1.6 "Karla",Arial,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#101413;background:#FFF;border:1px solid #1014131F;padding:.26rem .55rem;border-radius:2px;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s}',
-    '@media (prefers-color-scheme:dark){#khl-spine .tip{color:#EDF1EF;background:#121716;border-color:#EDF1EF24}}',
+    '#khl-spine .tip{position:absolute;right:calc(100% + 10px);top:50%;transform:translateY(-50%) translateX(6px);white-space:nowrap;font:500 .6rem/1.6 "Karla",Arial,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#EDF1EF;background:#121716;border:1px solid #EDF1EF24;padding:.26rem .55rem;border-radius:2px;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s}',
     '#khl-spine button:hover .tip,#khl-spine button:focus-visible .tip{opacity:1;transform:translateY(-50%) translateX(0)}',
     '@media (max-width:760px){#khl-spine button{width:32px;height:40px}#khl-spine .th{height:280px}#khl-spine .tip{display:none}}',
 
@@ -192,7 +187,7 @@
     '@media (max-width:860px){',
       '#khl{--spine:40px}',
       '#khl .pin{display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:4vh}',
-      '#khl .txt{max-width:100%;background:rgba(245,247,245,.72);backdrop-filter:blur(5px);padding:.85rem .9rem;margin:0 -.9rem;border-radius:4px}',
+      '#khl .txt{max-width:100%;background:rgba(8,11,10,.72);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);padding:.85rem .9rem;margin:0 -.9rem;border-radius:4px}',
       '#khl .num{font-size:.8rem;margin-bottom:.6rem}',
       '#khl .txt h2{font-size:clamp(1.55rem,7vw,2.1rem);line-height:1.08}',
       '#khl .txt h2 .en{font-size:.7rem;letter-spacing:.22em;margin-bottom:.5rem}',
@@ -202,7 +197,6 @@
       '#khl .facts b{font-size:.95rem}',
       '#khl .tone{margin-top:1rem;padding:.5rem .85rem;font-size:.6rem}',
     '}',
-    '@media (max-width:860px) and (prefers-color-scheme:dark){#khl .txt{background:rgba(8,11,10,.72)}}',
 
     /* outro */
     '#khl-out{position:relative;z-index:10;background:var(--paper);border-top:1px solid var(--soft)}',
@@ -384,7 +378,7 @@
       var alt = CFG.name + ' monogram with the seven chakra symbols running down its center';
 
       function theme(){
-        return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        return 'dark';   // the page is permanently dark, so always the light-ink mark
       }
       function url(tpl){ return tpl ? tpl.replace('@THEME@', theme()) : ''; }
 
@@ -441,14 +435,6 @@
         still.style.transform = 'none';
         plate.appendChild(still);
       }
-
-      /* follow the viewer flipping their OS theme mid-visit */
-      var mq = matchMedia('(prefers-color-scheme: dark)');
-      var onTheme = function(){
-        still.src = url(CFG.logoStill);
-        if(vid && !vid.ended) vid.src = url(CFG.logoVideo);
-      };
-      if(mq.addEventListener) { mq.addEventListener('change', onTheme); teardown.push(function(){ mq.removeEventListener('change', onTheme); }); }
     })();
 
     /* clear the Wix header: use the configured offset, else measure the real one */
