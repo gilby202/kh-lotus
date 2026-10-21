@@ -124,7 +124,7 @@
     '#khl-tap:hover .h,#khl-tap:focus-visible .h{opacity:.75}',
 
     /* spine */
-    '#khl-spine{position:fixed;top:0;right:0;bottom:0;width:clamp(52px,6vw,84px);z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;border-left:1px solid #EDF1EF12;background:rgba(8,11,10,.7);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:opacity .6s ease,transform .6s ease}',
+    '#khl-spine{position:fixed;top:0;right:0;bottom:0;width:clamp(52px,6vw,84px);z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;border-left:1px solid #EDF1EF12;background:rgba(8,11,10,.82);transition:opacity .6s ease,transform .6s ease}',
     '#khl-spine.away{opacity:0;transform:translateX(100%);pointer-events:none}',
     '#khl-spine .th{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:1px;height:392px;background:#EDF1EF24}',
     '#khl-comet{position:absolute;top:50%;left:50%;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;border-radius:50%;will-change:transform;opacity:0;transition:opacity .5s}',
@@ -187,7 +187,7 @@
     '@media (max-width:860px){',
       '#khl{--spine:40px}',
       '#khl .pin{display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:4vh}',
-      '#khl .txt{max-width:100%;background:rgba(8,11,10,.72);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);padding:.85rem .9rem;margin:0 -.9rem;border-radius:4px}',
+      '#khl .txt{max-width:100%;background:rgba(8,11,10,.9);padding:.85rem .9rem;margin:0 -.9rem;border-radius:4px}',
       '#khl .num{font-size:.8rem;margin-bottom:.6rem}',
       '#khl .txt h2{font-size:clamp(1.55rem,7vw,2.1rem);line-height:1.08}',
       '#khl .txt h2 .en{font-size:.7rem;letter-spacing:.22em;margin-bottom:.5rem}',
@@ -541,7 +541,7 @@
       var zone  = (H - topPx) * 0.44;
       cx = narrow ? W*0.5 : W*0.66;
       cy = narrow ? topPx + zone*0.5 : H*0.5;
-      R  = narrow ? Math.min(W*0.46, zone*0.46) : Math.min(W*0.42, H*0.40);
+      R  = narrow ? Math.min(W*0.50, zone*0.48) : Math.min(W*0.42, H*0.40);
       tap.style.width = tap.style.height = (R*1.1)+'px';
     }
     on(window,'resize',resize); resize();
@@ -622,7 +622,7 @@
         var topPx2 = parseFloat(root.style.getPropertyValue('--khl-top')) || 0;
         var zone2 = Math.max(140, Math.min(H*0.62, tTop - topPx2));
         cy = topPx2 + zone2*0.5;
-        R  = Math.min(W*0.46, zone2*0.44);
+        R  = Math.min(W*0.50, zone2*0.48);
       }
 
       cyDraw = cy - (1-arrival)*R*0.82;    // descends from above during the bloom
@@ -700,7 +700,7 @@
         }
         texts[ti].style.opacity = vis.toFixed(3);
         texts[ti].style.transform = 'translateY('+ty.toFixed(1)+'px)';
-        texts[ti].style.filter = vis<0.98 ? 'blur('+((1-vis)*3).toFixed(2)+'px)' : 'none';
+        texts[ti].style.filter = 'none';
       }
 
       if(plate && y < innerHeight*1.2){
