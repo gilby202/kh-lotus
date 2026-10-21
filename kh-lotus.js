@@ -188,16 +188,17 @@
       '#khl{--spine:34px;--pad:1rem}',
       '#khl .pin{display:flex;flex-direction:column;justify-content:flex-start;padding-top:1.4vh;padding-bottom:0}',
       '#khl .txt{max-width:100%;background:rgba(8,11,10,.9);padding:.7rem .8rem;margin:0 -.8rem;border-radius:4px}',
-      '#khl .num{font-size:.72rem;margin-bottom:.4rem}',
-      '#khl .num::after{max-width:70px}',
-      '#khl .txt h2{font-size:1.5rem;line-height:1.05}',
-      '#khl .txt h2 .en{font-size:.64rem;letter-spacing:.2em;margin-bottom:.35rem}',
-      '#khl .txt .bd{font-size:.82rem;line-height:1.42;margin-top:.55rem}',
-      /* three facts across in one row — stacked they ate most of the screen */
-      '#khl .facts{grid-template-columns:repeat(3,minmax(0,1fr));gap:.4rem .6rem;margin-top:.75rem;padding-top:.6rem}',
-      '#khl .facts span{font-size:.52rem;letter-spacing:.14em;margin-bottom:.1rem}',
-      '#khl .facts b{font-size:.84rem}',
-      '#khl .tone{margin-top:.75rem;padding:.42rem .7rem;font-size:.56rem;gap:.5rem}',
+      /* type scales with the screen (vh as well as vw) so a long chakra still fits */
+      '#khl .num{font-size:clamp(.62rem,1.5vh,.74rem);margin-bottom:.35rem}',
+      '#khl .num::after{max-width:60px}',
+      '#khl .txt h2{font-size:clamp(1.15rem,3.1vh,1.65rem);line-height:1.05}',
+      '#khl .txt h2 .en{font-size:clamp(.55rem,1.3vh,.66rem);letter-spacing:.2em;margin-bottom:.3rem}',
+      '#khl .txt .bd{font-size:clamp(.72rem,1.75vh,.88rem);line-height:1.38;margin-top:.5rem}',
+      '#khl .facts{grid-template-columns:repeat(3,minmax(0,1fr));gap:.3rem .5rem;margin-top:.6rem;padding-top:.5rem}',
+      '#khl .facts>div{min-width:0}',
+      '#khl .facts span{font-size:clamp(.46rem,1.05vh,.55rem);letter-spacing:.1em;margin-bottom:.08rem}',
+      '#khl .facts b{font-size:clamp(.72rem,1.6vh,.86rem);overflow-wrap:anywhere;hyphens:auto}',
+      '#khl .tone{margin-top:.6rem;padding:.38rem .65rem;font-size:clamp(.5rem,1.2vh,.58rem);gap:.45rem}',
     '}',
 
     /* outro */
@@ -239,7 +240,8 @@
     var css = WIX_PAGES + '{min-height:0!important;height:0!important;overflow:hidden!important}' +
               '#SITE_CONTAINER{min-height:0!important}';
     if(CFG.hideWixFooter) css += '#SITE_FOOTER{display:none!important}';
-    if(CFG.fixWixHeader)  css += '#SITE_HEADER{position:fixed!important;top:0!important;left:0!important;right:0!important;z-index:9500!important}';
+    if(CFG.fixWixHeader)  css += '#SITE_HEADER{position:fixed!important;top:0!important;left:0!important;right:0!important;z-index:9500!important}' +
+                                 '@media (max-width:860px){#SITE_HEADER{position:relative!important}}';
     return css;
   }
 
@@ -441,7 +443,10 @@
 
     /* clear the Wix header: use the configured offset, else measure the real one */
     function syncTop(){
-      var off = CFG.topOffset || (CFG.fixWixHeader ? headerHeight() : 0);
+      // On a phone the Wix header is left to scroll away, so the experience gets
+      // the whole screen; reserving its height there left a large dead band on top.
+      var off = innerWidth < 861 ? 0
+              : (CFG.topOffset || (CFG.fixWixHeader ? headerHeight() : 0));
       root.style.setProperty('--khl-top', off + 'px');
     }
     syncTop();
@@ -615,6 +620,10 @@
       S.spin2 -= (0.0007 + S.boost*0.006)*dir;
 
       var col = S.col, L = S.live;
+      // On a phone the lotus owns its own patch of black below the text, so it is
+      // drawn noticeably stronger there — on desktop it sits behind the copy and
+      // has to stay a backdrop.
+      var P = W < 861 ? 1.7 : 1;
 
       // On mobile the text sits at the top of the pinned view; put the lotus in
       // the open space beneath it, measured against the real bottom of the screen
@@ -624,10 +633,12 @@
         var tBot = refTxt ? refTxt.getBoundingClientRect().bottom : H*0.52;
         // the lotus always gets at least the bottom ~40% of the screen, and the
         // text can never push it past 58% however long that chakra's copy runs
-        var zoneTop = Math.min(Math.max(tBot + 6, H*0.28), H*0.58);
-        var zone2 = Math.max(H*0.30, H - zoneTop - 20);
+        var zoneTop = Math.min(Math.max(tBot + 8, H*0.26), H*0.52);
+        // leave 7% of the screen under the lotus so Safari's toolbar can't clip it
+        var bottomPad = Math.max(24, H*0.07);
+        var zone2 = Math.max(H*0.30, H - zoneTop - bottomPad);
         cy = zoneTop + zone2*0.5;
-        R  = Math.min(W*0.44, zone2*0.44);
+        R  = Math.min(W*0.46, zone2*0.46);
       }
 
       cyDraw = cy - (1-arrival)*R*0.82;    // descends from above during the bloom
@@ -643,7 +654,7 @@
       if(L>0.01){
         var Rr = R*(0.80 + S.energy*0.26)*(1 + S.boost*0.05)*aScale;
         var g = ctx.createRadialGradient(cx,cyDraw,0,cx,cyDraw,Rr*1.45);
-        g.addColorStop(0, rgba(col,0.16*L)); g.addColorStop(0.45, rgba(col,0.06*L)); g.addColorStop(1, rgba(col,0));
+        g.addColorStop(0, rgba(col,0.16*L*P)); g.addColorStop(0.45, rgba(col,0.06*L*P)); g.addColorStop(1, rgba(col,0));
         ctx.fillStyle=g; ctx.fillRect(cx-Rr*1.5, cyDraw-Rr*1.5, Rr*3, Rr*3);
 
         for(var m=0;m<motes.length;m++){
@@ -653,7 +664,7 @@
           var mr = Rr*(0.28+mo.rad*1.05), ma = mo.a + S.spin*0.4;
           ctx.beginPath();
           ctx.arc(cx+Math.cos(ma)*mr*0.55, cyDraw - Rr*1.2 + mo.y*Rr*2.4, mo.sz, 0, 6.2832);
-          ctx.fillStyle = rgba(col, 0.30*L*(1-Math.abs(mo.y-0.5)*1.5));
+          ctx.fillStyle = rgba(col, 0.30*L*P*(1-Math.abs(mo.y-0.5)*1.5));
           ctx.fill();
         }
 
@@ -662,27 +673,27 @@
           var al = q===full ? frac : 1;
           if(al<0.02) continue;
           ctx.beginPath(); petal((q/n)*6.2832 + S.spin - Math.PI/2, Rr*0.30, Rr*0.98, half);
-          ctx.fillStyle = rgba(col, 0.055*al*L); ctx.fill();
-          ctx.strokeStyle = rgba(col, (thin?0.32:0.46)*al*L); ctx.lineWidth = thin?0.8:1.3; ctx.stroke();
+          ctx.fillStyle = rgba(col, 0.055*al*L*P); ctx.fill();
+          ctx.strokeStyle = rgba(col, Math.min(1,(thin?0.32:0.46)*al*L*P)); ctx.lineWidth = (thin?0.8:1.3)*(P>1?1.25:1); ctx.stroke();
         }
         for(var q2=0;q2<8;q2++){
           ctx.beginPath(); petal((q2/8)*6.2832 + S.spin2 - Math.PI/2, Rr*0.10, Rr*0.44, Math.PI/8*0.8);
-          ctx.fillStyle = rgba(col,0.07*L); ctx.fill();
-          ctx.strokeStyle = rgba(col,0.34*L); ctx.lineWidth=1; ctx.stroke();
+          ctx.fillStyle = rgba(col,0.07*L*P); ctx.fill();
+          ctx.strokeStyle = rgba(col,Math.min(1,0.34*L*P)); ctx.lineWidth=P>1?1.25:1; ctx.stroke();
         }
         ctx.beginPath(); ctx.arc(cx,cyDraw,Rr*0.115,0,6.2832);
-        ctx.fillStyle = rgba(col,0.13*L); ctx.fill();
-        ctx.strokeStyle = rgba(col,0.6*L); ctx.lineWidth=1.2; ctx.stroke();
+        ctx.fillStyle = rgba(col,0.13*L*P); ctx.fill();
+        ctx.strokeStyle = rgba(col,Math.min(1,0.6*L*P)); ctx.lineWidth=1.2*(P>1?1.25:1); ctx.stroke();
 
         for(var rp=ripples.length-1;rp>=0;rp--){
           var r2=ripples[rp]; r2.r += Rr*0.016; r2.a *= 0.975;
           ctx.beginPath(); ctx.arc(cx,cyDraw,r2.r,0,6.2832);
-          ctx.strokeStyle = rgba(col, r2.a*L); ctx.lineWidth=1; ctx.stroke();
+          ctx.strokeStyle = rgba(col, Math.min(1,r2.a*L*P)); ctx.lineWidth=P>1?1.25:1; ctx.stroke();
           if(r2.a<0.01) ripples.splice(rp,1);
         }
 
         seed.textContent = (blend>0.5?CH[i1]:CH[i0]).bija;
-        seed.style.opacity = (L*(0.55+S.energy*0.45)).toFixed(3);
+        seed.style.opacity = Math.min(1, L*(0.55+S.energy*0.45)*(P>1?1.3:1)).toFixed(3);
         seed.style.color = css;
         seed.style.fontSize = (Rr*0.30).toFixed(1)+'px';
         seed.style.transform = 'translate(-50%,-50%) translate('+cx.toFixed(1)+'px,'+cyDraw.toFixed(1)+'px) scale('+((0.9+S.energy*0.12)*aScale).toFixed(3)+')';
