@@ -186,7 +186,7 @@
        compacted text block underneath, so the animation is never buried. */
     '@media (max-width:860px){',
       '#khl{--spine:40px}',
-      '#khl .pin{display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:4vh}',
+      '#khl .pin{display:flex;flex-direction:column;justify-content:flex-start;padding-top:2vh;padding-bottom:2vh}',
       '#khl .txt{max-width:100%;background:rgba(8,11,10,.9);padding:.85rem .9rem;margin:0 -.9rem;border-radius:4px}',
       '#khl .num{font-size:.8rem;margin-bottom:.6rem}',
       '#khl .txt h2{font-size:clamp(1.55rem,7vw,2.1rem);line-height:1.08}',
@@ -614,15 +614,16 @@
 
       var col = S.col, L = S.live;
 
-      // On mobile the text is bottom-anchored and its height varies per chakra,
-      // so fit the lotus to whatever room is actually left above it.
+      // On mobile the text sits at the top of the pinned view; put the lotus in
+      // the open space beneath it, measured against the real bottom of the screen
+      // (100svh can end well short of it once Safari hides its toolbars).
       if(W < 861){
         var refTxt = texts[J.idx < 0 ? 0 : J.idx];
-        var tTop = refTxt ? refTxt.getBoundingClientRect().top : H*0.55;
-        var topPx2 = parseFloat(root.style.getPropertyValue('--khl-top')) || 0;
-        var zone2 = Math.max(140, Math.min(H*0.62, tTop - topPx2));
-        cy = topPx2 + zone2*0.5;
-        R  = Math.min(W*0.50, zone2*0.48);
+        var tBot = refTxt ? refTxt.getBoundingClientRect().bottom : H*0.45;
+        var zoneTop = Math.max(tBot, H*0.30);
+        var zone2 = Math.max(130, H - zoneTop - 8);
+        cy = zoneTop + zone2*0.5;
+        R  = Math.min(W*0.46, zone2*0.46);
       }
 
       cyDraw = cy - (1-arrival)*R*0.82;    // descends from above during the bloom
