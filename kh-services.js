@@ -422,14 +422,19 @@
 
   /* ---------------- mount ---------------- */
 
-  var root = null, styleEl = null, fontsEl = null, collapsed = [], teardown = [];
+  var root = null, styleEl = null, hideEl = null, fontsEl = null, hostObserver = null, teardown = [];
 
   function findHost() {
     if (CFG.mountSelector) {
       var custom = document.querySelector(CFG.mountSelector);
       if (custom) return custom;
     }
-    return document.querySelector('#SITE_PAGES') || document.querySelector('#masterPage') || document.body;
+    // #PAGES_CONTAINER sits outside the subtree Wix re-renders on navigation,
+    // so the page survives hydration; the others are fallbacks.
+    return document.querySelector('#PAGES_CONTAINER') ||
+      document.querySelector('#SITE_PAGES') ||
+      document.querySelector('#masterPage') ||
+      document.body;
   }
 
   function loadFonts() {
@@ -455,18 +460,26 @@
     root.innerHTML = pageHTML();
 
     var host = findHost();
-    if (COLLAPSE && host !== document.body) {
-      for (var i = 0; i < host.children.length; i++) {
-        var c = host.children[i];
-        collapsed.push([c, c.getAttribute('style') || '']);
-        c.style.minHeight = '0';
-        c.style.height = '0';
-        c.style.padding = '0';
-        c.style.margin = '0';
-        c.style.overflow = 'hidden';
-      }
+
+    // Hide whatever Wix itself puts on this page. A stylesheet rather than
+    // inline styles, so it still holds after Wix re-renders its own content.
+    if (COLLAPSE && host.id) {
+      hideEl = document.createElement('style');
+      hideEl.id = 'khs-hide';
+      hideEl.textContent = '#' + host.id + ' > *:not(#khs){display:none !important}';
+      document.head.appendChild(hideEl);
     }
+
     host.appendChild(root);
+
+    // Wix can wipe its containers on hydration — put the page back if it goes.
+    if ('MutationObserver' in window) {
+      hostObserver = new MutationObserver(function () {
+        if (root && !host.contains(root) && onThisPage()) host.appendChild(root);
+      });
+      hostObserver.observe(host, { childList: true });
+    }
+
     start();
   }
 
@@ -474,13 +487,11 @@
     if (!root) return;
     teardown.forEach(function (fn) { fn(); });
     teardown = [];
-    collapsed.forEach(function (pair) {
-      if (pair[1]) pair[0].setAttribute('style', pair[1]); else pair[0].removeAttribute('style');
-    });
-    collapsed = [];
+    if (hostObserver) { hostObserver.disconnect(); hostObserver = null; }
     if (root.parentNode) root.parentNode.removeChild(root);
     if (styleEl && styleEl.parentNode) styleEl.parentNode.removeChild(styleEl);
-    root = null; styleEl = null;
+    if (hideEl && hideEl.parentNode) hideEl.parentNode.removeChild(hideEl);
+    root = null; styleEl = null; hideEl = null;
   }
 
   /* ---------------- behaviour ---------------- */
@@ -672,12 +683,16 @@
   }
 
   function sync() {
-    if (onThisPage()) mount(); else destroy();
+    if (!onThisPage()) { destroy(); return; }
+    // if Wix threw the page away wholesale, rebuild it
+    if (root && !document.body.contains(root)) destroy();
+    mount();
   }
 
   var lastPath = location.pathname;
   setInterval(function () {
-    if (location.pathname !== lastPath) { lastPath = location.pathname; setTimeout(sync, 80); }
+    if (location.pathname !== lastPath) { lastPath = location.pathname; setTimeout(sync, 80); return; }
+    if (onThisPage() && root && !document.body.contains(root)) sync();
   }, 400);
   addEventListener('popstate', function () { setTimeout(sync, 80); });
 
@@ -686,4 +701,5 @@
   } else {
     sync();
   }
+  addEventListener('load', function () { setTimeout(sync, 300); });
 })();
