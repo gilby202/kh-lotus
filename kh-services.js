@@ -9,7 +9,6 @@
 
   var CFG = window.KH_SERVICES || {};
 
-  var BASE = (CFG.base || 'https://cdn.jsdelivr.net/gh/gilby202/kh-lotus@main/services/').replace(/\/?$/, '/');
   var PAGE = (CFG.pagePath || '').replace(/\/$/, '');
   var TOP = CFG.topOffset != null ? CFG.topOffset : 0;
   var EMAIL = CFG.email || 'kylehagemannreiki@gmail.com';
@@ -18,97 +17,118 @@
 
   var SITE = 'https://www.kylehagemannreiki.com';
   var BOOK = assign({
-    all: SITE + '/book-online',
+    all: SITE + '/book-online1',
     reiki: SITE + '/service-page/reiki-healing-session',
+    pet: SITE + '/service-page/pet-reiki',
     yoga: SITE + '/service-page/private-yoga-session',
     cleanse: SITE + '/service-page/home-negative-energy-cleanse',
     cards: SITE + '/service-page/choice-of-tarot-or-oracle-read-w-chakra-balance',
     'class': SITE + '/service-page/reiki-levels-1-2-certification-class'
   }, CFG.book);
 
-  var PACK_LINKS = CFG.packs || {};
+  // Plan "Buy plan" buttons open that plan's Wix checkout. A different link
+  // can be pasted into the snippet under KH_SERVICES.plans[planId].
+  var PLAN_LINKS = CFG.plans || {};
+  function planURL(p) {
+    return SITE + '/pricing-plans/plan-customization?planId=' + p.wix[0] + '&pricingVariantId=' + p.wix[1];
+  }
+
+  function wix(file, size) {
+    return 'https://static.wixstatic.com/media/' + file + '/v1/fit/w_' + size + ',h_' + size +
+      ',al_c,q_85,enc_auto/' + file;
+  }
   var PHOTOS = assign({
-    heroLeft: BASE + 'img/yoga.jpg',
-    heroMid: BASE + 'img/hero-elephant.jpg',
-    heroRight: BASE + 'img/class.jpg',
-    reiki: BASE + 'img/reiki.jpg',
-    yoga: BASE + 'img/yoga.jpg',
-    cleanse: '',
-    tarot: BASE + 'img/tarot.jpg',
-    'class': BASE + 'img/class.jpg',
-    portrait: ''
+    reiki: wix('a929ae_70a2b973ce144de384425845a2b0f08b~mv2.jpg', 1400),
+    pet: wix('a929ae_570ae51ccde64d53805ec57a7538701f~mv2.jpg', 1600),
+    yoga: wix('a929ae_63ec2528afa045ee8a5517a5f1d0ff3a~mv2.jpg', 1400),
+    cleanse: wix('a929ae_b42ecc6086254fd78fde11f92e5f8446~mv2.jpg', 1400),
+    cards: wix('a929ae_c86b23392776466b97389f83a265f8d9~mv2.jpg', 1400),
+    'class': wix('a929ae_2b139f7c042648c78627656fa2634df2~mv2.png', 1600),
+    portrait: wix('a929ae_b42ab168be764f73bea04329e20a4d6b~mv2.jpg', 1800)
   }, CFG.photos);
 
+  // Shape of each photo (width ÷ height). Frames start at this shape and
+  // re-measure from the real image once it loads, so a swapped photo fits.
+  var RATIOS = { reiki: 1, pet: 2752 / 1536, yoga: 1, cleanse: 1, cards: 1, 'class': 2, portrait: 2002 / 3000 };
+
   var HUES = { crown: '#B026C4', eye: '#6C36D9', throat: '#1E9BCB', heart: '#4E9E28', solar: '#C9871A', sacral: '#DD4B18', root: '#C51234' };
-  var TIERS = [{ n: 3, off: 10 }, { n: 5, off: 12 }, { n: 10, off: 15 }];
 
   /* ---------------- content ---------------- */
 
   var SERVICES = [
     {
-      id: 'reiki', hue: 'heart', photo: 'reiki', fit: 'paper',
+      id: 'reiki', hue: 'heart',
       name: 'Reiki Healing Session', from: 'from $60',
-      tag: 'In person at home · Distance',
       title: 'Reiki Healing Session',
-      desc: 'Gentle energy work to release what the body has been holding. Kyle can come to you, or send Reiki from a distance while you rest wherever you are.',
+      desc: ['Reiki is a holistic energy healing practice designed to promote relaxation, support emotional well-being, and encourage balance within the body and mind. Each session can be personalized to your needs, with options including incense, singing bowls, shamanic-inspired healing techniques, and tuning forks.'],
       aside: 'In-person availability depends on your area — ask and Kyle will confirm.',
-      prices: [
-        { dur: '30 minutes', amt: '$60', book: 'reiki' },
-        { dur: '1 hour', amt: '$100', book: 'reiki' }
-      ],
-      packs: { base: 100, unit: 'sessions', note: 'Pack prices are based on the 1-hour session. Ask about 30-minute packs.' }
+      prices: [{ dur: '30 min', amt: '$60' }, { dur: '1 hr', amt: '$100' }],
+      plans: [
+        { id: 'monthly-reiki-membership', name: 'Monthly Reiki Membership', price: 350, per: 'month', sessions: 4,
+          wix: ['e52f829f-ea78-4c53-a18f-bb5f59439646', '9a9e09eb-e910-424a-b25f-b6cd96cf2bbb'],
+          desc: '4 one hour Reiki sessions per month scheduled on a weekly basis.' },
+        { id: '4-session-reiki-package', name: '4 Session Reiki Package', price: 200, sessions: 4,
+          wix: ['9aa52891-9e3f-4c07-b166-7f1db467bc29', '43c1f068-14b4-42e2-8cf9-99a9cda3801b'],
+          desc: 'Four 30 minute reiki sessions offered at a promotional discounted rate' }
+      ]
     },
     {
-      id: 'yoga', hue: 'sacral', photo: 'yoga',
+      id: 'pet', hue: 'root',
+      name: 'Pet Reiki', from: '$80',
+      title: 'Pet Reiki',
+      desc: ['Some Reiki R&amp;R for your furry companion!', 'Help soothe your furry companion’s anxiety, pain and depression!'],
+      prices: [{ dur: '45 min', amt: '$80' }],
+      plans: [
+        { id: 'pet-reiki-package', name: 'Pet Reiki Package', price: 300, sessions: 4,
+          wix: ['0bfea6e4-831f-4c1e-a695-94b0fbc271d9', 'f7052dbc-9f6d-430e-90d1-0a735d7912df'],
+          desc: '4 Reiki Sessions designed specifically for your pet’s well-being. Help soothe your furry companion’s anxiety, pain and depression!' }
+      ]
+    },
+    {
+      id: 'yoga', hue: 'sacral',
       name: 'Private Yoga Session', from: '$100',
-      tag: 'Private class · In your home',
       title: 'Private Yoga Session',
-      desc: 'A personalized, one-on-one yoga session tailored to your individual needs, goals, and experience level.',
-      prices: [{ dur: '1 hour, private', amt: '$100', book: 'yoga' }],
-      packs: { base: 100, unit: 'sessions' }
+      desc: ['A personalized, one-on-one yoga session tailored to your individual needs, goals, and experience level.'],
+      prices: [{ dur: '1 hr', amt: '$100' }],
+      plans: [
+        { id: 'private-yoga-session-monthly-plan', name: 'Monthly Private Yoga Session Membership', price: 350, per: 'month', sessions: 4,
+          wix: ['b2b4fcd3-74bf-4764-a187-f0c281c9ce33', '7a1c76da-ece1-4e6c-bea6-6c8f09adb415'],
+          desc: 'Comes with 1 day per week for one month total 4 sessions for one hour each.' },
+        { id: 'yoga-beginner-lessons-3-pack', name: 'Yoga Beginner Lessons 3 Pack', price: 270, sessions: 3,
+          wix: ['de945b88-8b65-40c4-a927-f9c3e217dc02', '4930656b-c96a-4d55-864b-0fde536fc0d7'],
+          desc: '3 one hour private classes designed to teach the foundations of Yoga to a beginner student.' }
+      ]
     },
     {
-      id: 'cleanse', hue: 'solar', photo: 'cleanse', art: 'cleanse',
-      note: 'Photo slot · sage smoke through a doorway',
-      name: 'Home Negative Energy Cleanse', from: 'from $100',
-      tag: 'In your home',
+      id: 'cleanse', hue: 'solar',
+      name: 'Home Negative Energy Cleanse', from: 'Starts at $100',
       title: 'Home Negative Energy Cleanse',
-      desc: 'Create a more peaceful, harmonious living environment through a spiritual home-cleansing ritual designed to release stagnant or unwanted energy.',
-      aside: 'Invite high-vibrational energy, restore balance, and cultivate a sense of lightness, comfort and positive energy throughout your home.',
-      prices: [{ dur: '1 hour, every room', amt: 'From $100', book: 'cleanse' }],
-      packs: { base: 100, unit: 'visits', note: 'Based on the $100 starting rate — larger homes are priced on request.' }
+      desc: ['Create a more peaceful, harmonious living environment through a spiritual home-cleansing ritual designed to release stagnant or unwanted energy. Invite high-vibrational energy, restore balance, and cultivate a sense of lightness, comfort, and positive energy throughout your home.'],
+      aside: 'Larger homes are priced on request.',
+      prices: [{ dur: '1 hr', amt: 'Starts at $100' }],
+      plans: [
+        { id: 'monthly-house-clense', name: 'Monthly House Cleanse', price: 85, per: 'month', sessions: 1,
+          wix: ['0ee0adfb-2b65-421c-81e4-0b2dcad6ae2d', 'a92df74b-438e-4f2a-9469-fd015ea8d1ae'],
+          desc: '1 session a month for one hour for home Cleansing' }
+      ]
     },
     {
-      id: 'cards', hue: 'throat', photo: 'tarot', fit: 'contain',
+      id: 'cards', hue: 'throat',
       name: 'Tarot or Oracle Read', from: '$100',
-      tag: 'In person · Virtual',
-      title: 'Tarot or Oracle Read with Chakra Balance',
-      desc: "Your choice of deck, read for whatever you're sitting with right now — then a chakra balance to settle what the cards bring up. Bring a question, or come with nothing in particular.",
-      prices: [{ dur: '45 minutes', amt: '$100', book: 'cards' }],
-      packs: { base: 100, unit: 'readings' }
+      title: 'Choice of Tarot or Oracle Read w/ Chakra Balance',
+      desc: ['Explore the wisdom of the Tarot or receive spiritual guidance from the Archangels through an Oracle Card reading. Gain meaningful insight, clarity, and perspective on life’s questions and challenges. Complete your session with a chakra-balancing experience designed to promote harmony, restore energetic balance, and leave you feeling refreshed, centered, and spiritually renewed.', 'Tarot or Angel Oracle Reading w/ chakra balance'],
+      prices: [{ dur: '45 min', amt: '$100' }]
     },
     {
-      id: 'class', hue: 'crown', photo: 'class',
-      name: 'Reiki Levels 1 & 2 Class', from: 'contact for dates',
-      tag: 'Small group · 3 hours',
+      id: 'class', hue: 'crown',
+      name: 'Reiki Levels 1 &amp; 2 Class', from: 'Contact for Price',
       title: 'Reiki Levels 1 &amp; 2 Certification Class',
-      desc: "Learn from a Reiki Master who has developed a unique, holistic approach to supporting the body's natural healing process. Deepen your understanding of Reiki, expand your healing practice, and strengthen your connection to energy work.",
-      aside: 'Level I and Level II classes run monthly. Reiki Mastership programs are available on request.',
-      prices: [{ dur: '3 hours, certification', amt: 'Contact for dates', book: 'class', label: 'See dates' }],
-      ask: 'Ask about the next class'
+      desc: ['Learn from a Reiki Master who has developed a unique, holistic approach to supporting the body’s natural healing process. Reiki Level I and Level II classes are offered monthly, with Reiki Mastership programs available upon request. Deepen your understanding of Reiki, expand your healing practice, and strengthen your connection to energy work.'],
+      prices: [{ dur: '3 hr', amt: 'Contact for Price' }]
     }
   ];
 
-  var RESULTS = [
-    ['heart', 'Reduced anxiety and improved mood'],
-    ['sacral', 'Enhanced energy'],
-    ['solar', 'Relief from chronic pain and illness'],
-    ['eye', 'Higher self-esteem and improved self-worth'],
-    ['crown', 'Reduced side effects from chemotherapy and radiation treatment']
-  ];
-
-  var RIBBON_A = [['Reiki', 'heart'], ['Yoga', 'sacral'], ['Clearing', 'solar'], ['Cards', 'throat'], ['Certification', 'crown']];
-  var RIBBON_B = [['in your home', 'root'], ['in person', 'throat'], ['virtually', 'eye'], ['at any distance', 'heart']];
+  var RIBBON = [['Reiki', 'heart'], ['Pets', 'root'], ['Yoga', 'sacral'], ['Clearing', 'solar'], ['Cards', 'throat'], ['Certification', 'crown']];
 
   /* ---------------- helpers ---------------- */
 
@@ -121,6 +141,7 @@
     var whole = Math.abs(n - Math.round(n)) < 0.001;
     return '$' + n.toLocaleString('en-US', { minimumFractionDigits: whole ? 0 : 2, maximumFractionDigits: whole ? 0 : 2 });
   }
+  function plain(s) { return s.replace(/&amp;/g, '&'); }
   function mailto(subject) {
     return 'mailto:' + EMAIL + '?subject=' + encodeURIComponent(subject);
   }
@@ -128,105 +149,84 @@
   function easeInOut(t) { return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
   function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
 
-  function photoBox(svc, alt) {
-    var src = PHOTOS[svc.photo];
-    var fitClass = src && svc.fit === 'contain' ? ' contain'
-      : src && svc.fit === 'paper' ? ' contain paper' : '';
-    if (src) {
-      return '<div class="fill' + fitClass + '"><img class="pic" src="' + src + '" alt="' + (alt || '') + '"></div>';
-    }
-    return '<div class="fill"><div class="ph" data-art="' + (svc.art || '') + '"></div></div>' +
-      (svc.note ? '<p class="note-slot">' + svc.note + '</p>' : '');
+  function fillHTML(key, alt) {
+    return '<div class="fill"><img class="pic" src="' + PHOTOS[key] + '" alt="' + (alt || '') + '"></div>';
   }
 
-  function packHTML(svc) {
-    if (!svc.packs) return '';
-    var base = svc.packs.base, unit = svc.packs.unit || 'sessions';
-    var cards = TIERS.map(function (t) {
-      var total = Math.round(base * t.n * (1 - t.off / 100) * 100) / 100;
-      var key = svc.id + '-' + t.n;
-      var href = PACK_LINKS[key] || mailto('Pack of ' + t.n + ' — ' + svc.title.replace(/&amp;/g, '&'));
-      var ext = PACK_LINKS[key] ? ' target="_blank" rel="noopener"' : '';
+  function plansHTML(svc) {
+    if (!svc.plans || !svc.plans.length) return '';
+    var cards = svc.plans.map(function (p) {
+      var href = PLAN_LINKS[p.id] || planURL(p);
       return '<li>' +
-        '<span class="n"><b>' + t.n + '</b><span>' + unit + '</span></span>' +
-        '<span class="off">' + t.off + '% off</span>' +
-        '<span class="tot">' + money(total) + '</span>' +
-        '<span class="per">' + money(total / t.n) + ' each</span>' +
-        '<a class="buy" href="' + href + '"' + ext + '>Buy pack</a>' +
+        '<div class="p-head"><b class="p-name">' + p.name + '</b>' +
+        '<span class="p-price">' + money(p.price) + (p.per ? '<small>/' + p.per + '</small>' : '') + '</span></div>' +
+        '<p class="p-desc">' + p.desc + '</p>' +
+        '<div class="p-foot"><span class="per">' + money(p.price / p.sessions) + ' each</span>' +
+        '<a class="buy" href="' + href + '" target="_blank" rel="noopener">Buy plan</a></div>' +
         '</li>';
     }).join('');
-    return '<div class="packs-in"><p class="label">Save with a pack</p><ul class="pack-row">' + cards + '</ul>' +
-      (svc.packs.note ? '<p class="fine">' + svc.packs.note + '</p>' : '') + '</div>';
+    return '<div class="plans-in"><p class="label">Packages &amp; memberships</p><ul class="plan-list">' + cards + '</ul></div>';
   }
 
   function serviceHTML(svc) {
     var prices = svc.prices.map(function (p) {
       return '<li><span class="dur">' + p.dur + '</span><span class="amt">' + p.amt + '</span>' +
-        '<a class="buy" href="' + BOOK[p.book] + '" target="_blank" rel="noopener">' + (p.label || 'Book') + '</a></li>';
+        '<a class="buy" href="' + BOOK[svc.id] + '" target="_blank" rel="noopener">Book Now</a></li>';
     }).join('');
 
     return '<article class="svc" id="khs-' + svc.id + '" data-hue="' + svc.hue + '" data-name="' +
-      svc.name.replace(/&amp;/g, '&') + '" data-from="' + svc.from + '" style="--c:var(--' + svc.hue + ')">' +
-      '<div class="shot-inline"><div class="reveal">' + photoBox(svc, svc.name) + '</div></div>' +
-      '<p class="label tag">' + svc.tag + '</p>' +
+      plain(svc.name) + '" data-from="' + svc.from + '" data-ar="' + RATIOS[svc.id] +
+      '" style="--c:var(--' + svc.hue + ');--ar:' + RATIOS[svc.id] + '">' +
+      '<div class="shot-inline shape"><div class="reveal">' + fillHTML(svc.id, plain(svc.title)) + '</div></div>' +
       '<h3>' + svc.title + '</h3>' +
-      '<p class="desc">' + svc.desc + '</p>' +
+      svc.desc.map(function (d) { return '<p class="desc">' + d + '</p>'; }).join('') +
       (svc.aside ? '<p class="aside">' + svc.aside + '</p>' : '') +
       '<ul class="prices">' + prices + '</ul>' +
-      packHTML(svc) +
-      (svc.ask ? '<a class="pill" href="' + mailto(svc.title.replace(/&amp;/g, '&')) + '">' + svc.ask + ' <span class="arr" aria-hidden="true">→</span></a>' : '') +
+      plansHTML(svc) +
       '</article>';
   }
 
-  function ribbonHTML(words, cls) {
+  function ribbonHTML(words) {
     var once = words.map(function (w) {
       return '<span class="w">' + w[0] + ' <i class="dot" style="--c:var(--' + w[1] + ')"></i></span>';
     }).join('');
-    return '<div class="line ' + cls + '">' + once + once + '</div>';
+    return '<div class="line">' + once + once + '</div>';
   }
 
   /* ---------------- markup ---------------- */
 
   function pageHTML() {
-    var heroArch = function (key, pos) {
-      return '<div class="lift"><div class="arch"><div class="fill"><img class="pic" src="' +
-        PHOTOS[key] + '" alt="" style="object-position:' + pos + '"></div></div></div>';
+    var heroShape = function (key) {
+      return '<div class="lift"><div class="shape" style="--ar:' + RATIOS[key] + '">' + fillHTML(key) + '</div></div>';
     };
 
     return '' +
       '<section class="hero" data-hue="heart">' +
       '<div class="hero-copy">' +
       '<p class="label">Services &amp; pricing</p>' +
-      '<h1>Five ways to find your <em>peace</em></h1>' +
-      '<p class="sub">Reiki, private yoga, home energy clearing, card readings and certification — in your home, in person, virtually, or from a distance.</p>' +
-      '<div class="facts">' +
-      '<div><span class="label">Sessions from</span><b>$60</b></div>' +
-      '<div><span class="label">Packs save up to</span><b>15%</b></div>' +
-      '<div><span class="label">Held</span><b>Home · Virtual · Distance</b></div>' +
-      '</div></div>' +
-      '<div class="trio" aria-hidden="true">' +
-      heroArch('heroLeft', '50% 58%') + heroArch('heroMid', '46% 50%') + heroArch('heroRight', '52% 50%') +
-      '</div></section>' +
+      '<h1>Find your <em>peace</em></h1>' +
+      '<p class="sub">Reiki, pet Reiki, private yoga, home energy clearing, card readings and certification.</p>' +
+      '</div>' +
+      '<div class="trio" aria-hidden="true">' + heroShape('yoga') + heroShape('reiki') + heroShape('pet') + '</div>' +
+      '</section>' +
 
-      '<div class="ribbon" aria-hidden="true">' + ribbonHTML(RIBBON_A, 'a') + ribbonHTML(RIBBON_B, 'b') + '</div>' +
+      '<div class="ribbon" aria-hidden="true">' + ribbonHTML(RIBBON) + '</div>' +
 
-      '<section class="about" data-hue="heart"><div>' +
+      '<section class="about" data-hue="heart">' +
       '<p class="label">About the work</p>' +
       '<h2>Reiki is an ancient form of Japanese healing</h2>' +
       '<p>It is believed to reduce stress, increase energy, and provide a feeling of peace and calm for the patient during and after the healing session.</p>' +
-      '<p>Sessions are one to one, and you stay fully clothed throughout. Kyle is a Reiki master and a 500-hour registered yoga instructor working across Long Island and, for distance work, anywhere.</p>' +
-      '</div><div class="results-col"><p class="label">Typical results</p><ul class="results">' +
-      RESULTS.map(function (r) { return '<li><i style="--c:var(--' + r[0] + ')"></i>' + r[1] + '</li>'; }).join('') +
-      '</ul></div></section>' +
+      '<p>Kyle is a Reiki Master &amp; 500 RYT Yoga Instructor.</p>' +
+      '</section>' +
 
       '<section class="services" id="khs-services">' +
       '<div class="services-head"><p class="label">Services</p>' +
       '<h2>Pick the practice that fits the day</h2>' +
-      '<p>Book a single session, or buy a pack and every session in it is discounted — 10% off three, 12% off five, 15% off ten.</p></div>' +
+      '<p>Book a single session, or choose one of Kyle’s packages and memberships.</p></div>' +
       '<div class="svc-grid"><div class="stage-col" aria-hidden="true"><div class="stage">' +
-      '<div class="frame-wrap"><div class="glow"></div><div class="frame arch">' +
+      '<div class="frame-wrap"><div class="glow"></div><div class="frame">' +
       SERVICES.map(function (s) {
-        return '<div class="layer" style="--c:var(--' + s.hue + ')">' + photoBox(s) + '</div>';
+        return '<div class="layer" style="--c:var(--' + s.hue + ')">' + fillHTML(s.id) + '</div>';
       }).join('') +
       '</div></div>' +
       '<div class="stage-meta"><ul class="dots"></ul>' +
@@ -236,10 +236,8 @@
       '</div></section>' +
 
       '<section class="cta" id="khs-book" data-hue="heart">' +
-      '<div class="arch">' + (PHOTOS.portrait
-        ? '<div class="fill"><img class="pic" src="' + PHOTOS.portrait + '" alt="Kyle Hagemann"></div>'
-        : '<div class="fill"><div class="ph" data-art="portrait"></div></div><p class="note-slot">Photo slot · portrait of Kyle</p>') +
-      '</div><div>' +
+      '<div class="shape portrait" style="--ar:' + RATIOS.portrait + '">' + fillHTML('portrait', 'Kyle Hagemann') + '</div>' +
+      '<div>' +
       '<p class="label">Book</p><h2>Ready when <em>you</em> are</h2>' +
       '<p class="lede">Pick a time straight from the booking calendar, or email Kyle with what you\'d like and a few times that work for you. For anything in person, include your town so he can confirm availability.</p>' +
       '<div class="actions">' +
@@ -260,7 +258,7 @@
       '--crown:#B026C4;--eye:#6C36D9;--throat:#1E9BCB;--heart:#4E9E28;--solar:#C9871A;--sacral:#DD4B18;--root:#C51234;' +
       '--k:#4E9E28;--kt:color-mix(in oklab, var(--k) var(--kmix), var(--ink));' +
       '--display:"Newsreader","Iowan Old Style",Georgia,serif;--body:"Karla","Helvetica Neue",Arial,sans-serif;' +
-      '--pad:clamp(1rem,5vw,5rem);--top:' + TOP + 'px;--ease:cubic-bezier(.16,1,.3,1);' +
+      '--pad:clamp(1rem,5vw,5rem);--top:' + TOP + 'px;--ease:cubic-bezier(.16,1,.3,1);--radius:6px;' +
       'transition:--k 1.1s ease;position:relative;z-index:1;' +
       'background:var(--paper);color:var(--ink);font-family:var(--body);font-weight:300;font-size:17px;line-height:1.7;' +
       '-webkit-font-smoothing:antialiased;overflow-x:clip;}' +
@@ -270,34 +268,12 @@
       '#khs p{margin:0}#khs a{color:inherit}' +
       '#khs :focus-visible{outline:2px solid var(--kt);outline-offset:3px;border-radius:2px}' +
       '#khs .label{font-size:.68rem;letter-spacing:.24em;text-transform:uppercase;font-weight:500;color:var(--muted)}' +
-      '#khs section,#khs .ribbon{padding-inline:var(--pad)}' +
-      '#khs .ribbon{padding-inline:0}' +
+      '#khs section{padding-inline:var(--pad)}' +
 
-      /* photo slots */
-      '#khs .fill{position:absolute;inset:-7% 0;will-change:transform}' +
+      /* photo frames: rounded rectangles shaped to each photo */
+      '#khs .shape{position:relative;overflow:hidden;isolation:isolate;border-radius:var(--radius);aspect-ratio:var(--ar,1);background:var(--sunk)}' +
+      '#khs .fill{position:absolute;inset:-5% 0;will-change:transform}' +
       '#khs .fill .pic{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}' +
-      '#khs .fill.contain{inset:0;background:#FAF6EA}' +
-      '#khs .fill.contain .pic{object-fit:contain;padding:7% 9%}' +
-      '#khs .fill.contain.paper{background:#FDFDFC}' +
-      '#khs .fill.contain.paper .pic{padding:3% 5%}' +
-      '#khs .ph{--lx:32%;--ly:16%;position:absolute;inset:0;background:' +
-      'radial-gradient(75% 52% at var(--lx) var(--ly), #FFFFFF 0%, transparent 70%),' +
-      'radial-gradient(90% 70% at 85% 108%, color-mix(in oklab, var(--c) 42%, #6E7A73) 0%, transparent 72%),' +
-      'linear-gradient(170deg, color-mix(in oklab, var(--c) 12%, #FFFFFF) 0%, color-mix(in oklab, var(--c) 46%, #DDE4DC) 100%)}' +
-      '#khs .ph::before{content:"";position:absolute;inset:0;pointer-events:none}' +
-      '#khs .ph[data-art="cleanse"]::before{background:' +
-      'radial-gradient(10% 34% at 44% 58%, rgba(255,255,255,.75), transparent 72%),' +
-      'radial-gradient(8% 26% at 55% 36%, rgba(255,255,255,.6), transparent 72%),' +
-      'radial-gradient(16% 20% at 47% 16%, rgba(255,255,255,.45), transparent 72%),' +
-      'radial-gradient(3% 2.4% at 46% 86%, rgba(255,186,90,.95), transparent 80%),' +
-      'radial-gradient(15% 9% at 46% 86%, rgba(255,170,80,.35), transparent 80%);filter:blur(5px);transform:skewX(-9deg) scale(1.08)}' +
-      '#khs .ph[data-art="portrait"]::before{background:' +
-      'radial-gradient(14% 11% at 50% 40%, rgba(255,255,255,.75) 0 95%, transparent 100%),' +
-      'radial-gradient(46% 30% at 50% 100%, rgba(255,255,255,.6) 0 97%, transparent 100%)}' +
-      '#khs .note-slot{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:2.6rem 1rem 1.05rem;text-align:center;' +
-      'font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;font-weight:500;line-height:1.5;color:var(--ink-2);' +
-      'background:linear-gradient(transparent,rgba(255,255,255,.72))}' +
-      '#khs .arch{position:relative;overflow:hidden;isolation:isolate;border-radius:999px 999px 6px 6px;background:var(--sunk)}' +
 
       /* hero */
       '#khs .hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:clamp(2.5rem,6vw,6rem);' +
@@ -305,45 +281,37 @@
       '#khs .hero h1{font-size:clamp(3rem,7.2vw,6.4rem);line-height:.95;margin-top:1.4rem}' +
       '#khs .hero h1 em{font-style:italic;font-weight:300;color:var(--kt)}' +
       '#khs .hero .sub{margin-top:1.7rem;max-width:40ch;color:var(--ink-2);font-size:clamp(1rem,1.5vw,1.14rem)}' +
-      '#khs .facts{display:flex;flex-wrap:wrap;gap:1.1rem 2.6rem;margin-top:2.6rem;padding-top:1.5rem;border-top:1px solid var(--rule-soft)}' +
-      '#khs .facts b{display:block;margin-top:.25rem;font-family:var(--display);font-weight:400;font-size:1.45rem;line-height:1.2;color:var(--ink);font-variant-numeric:tabular-nums}' +
-      '#khs .trio{display:grid;grid-template-columns:1fr 1.18fr .92fr;gap:clamp(.55rem,1.4vw,1.1rem);align-items:start}' +
-      '#khs .trio .arch{aspect-ratio:3/5}' +
-      '#khs .trio .lift:nth-child(1){margin-top:18%}#khs .trio .lift:nth-child(3){margin-top:40%}' +
+      '#khs .trio{display:grid;grid-template-columns:1fr 1.15fr;gap:clamp(.55rem,1.4vw,1.1rem);align-items:start}' +
+      '#khs .trio .lift:nth-child(1){margin-top:16%}' +
+      '#khs .trio .lift:nth-child(3){grid-column:1 / -1;width:84%;justify-self:end}' +
       '@media (max-width:860px){#khs .hero{grid-template-columns:1fr;padding-block:2.5rem 3rem}#khs .trio{max-width:520px}}' +
 
       /* ribbon */
       '#khs .ribbon{overflow:hidden;overflow:clip;padding-block:clamp(1.8rem,5vh,3.4rem);border-block:1px solid var(--rule-soft)}' +
       '#khs .ribbon .line{display:flex;width:max-content;white-space:nowrap;will-change:transform;font-family:var(--display);' +
       'font-weight:200;font-size:clamp(2.6rem,8vw,6.6rem);line-height:1.12;letter-spacing:-.02em}' +
-      '#khs .ribbon .line.b{font-style:italic;color:var(--muted);margin-top:.15rem}' +
       '#khs .ribbon .w{display:inline-flex;align-items:center;gap:.5em;padding-right:.5em}' +
       '#khs .ribbon .dot{display:inline-block;width:.16em;height:.16em;border-radius:50%;background:var(--c)}' +
 
       /* about */
-      '#khs .about{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(2rem,6vw,5rem);padding-block:clamp(4rem,10vh,7rem)}' +
+      '#khs .about{padding-block:clamp(4rem,10vh,7rem)}' +
       '#khs .about h2{font-size:clamp(1.9rem,4.2vw,3rem);line-height:1.06;margin-top:1rem;max-width:20ch}' +
-      '#khs .about p{color:var(--ink-2);margin-top:1.3rem;max-width:50ch}' +
-      '#khs .results-col{align-self:center}#khs .results-col .label{margin-bottom:1.1rem}' +
-      '#khs .results{list-style:none;margin:0;padding:0}' +
-      '#khs .results li{display:flex;gap:1rem;padding:.95rem 0;border-bottom:1px solid var(--rule-soft);color:var(--ink-2);font-size:.98rem}' +
-      '#khs .results li:first-child{border-top:1px solid var(--rule-soft)}' +
-      '#khs .results i{flex:none;width:7px;height:7px;margin-top:.62rem;border-radius:50%;background:var(--c)}' +
-      '@media (max-width:820px){#khs .about{grid-template-columns:1fr}}' +
+      '#khs .about p:not(.label){color:var(--ink-2);margin-top:1.3rem;max-width:50ch}' +
 
       /* services */
       '#khs .services{padding-block:clamp(3rem,8vh,5rem) 1rem;border-top:1px solid var(--rule-soft)}' +
       '#khs .services-head{max-width:62ch;margin-bottom:clamp(1rem,4vh,3rem)}' +
       '#khs .services-head h2{font-size:clamp(2.1rem,4.6vw,3.5rem);line-height:1.04;margin-top:1rem}' +
-      '#khs .services-head p{color:var(--ink-2);margin-top:1rem;max-width:54ch}' +
+      '#khs .services-head p:not(.label){color:var(--ink-2);margin-top:1rem;max-width:54ch}' +
       '#khs .svc-grid{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1fr);gap:clamp(2rem,6vw,6rem)}' +
       '#khs .stage-col{position:relative}' +
       '#khs .stage{position:sticky;top:calc(var(--top) + 2vh);height:calc(100svh - var(--top) - 4vh);' +
       'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem}' +
-      '#khs .frame-wrap{position:relative;height:min(62svh,580px);aspect-ratio:4/5;max-width:100%}' +
+      '#khs .frame-wrap{position:relative;width:min(100%,460px);aspect-ratio:1;max-width:100%}' +
       '#khs .glow{position:absolute;inset:-16%;z-index:0;pointer-events:none;border-radius:50%;' +
       'background:radial-gradient(closest-side, color-mix(in oklab, var(--k) 30%, transparent), transparent);filter:blur(34px);opacity:.45}' +
-      '#khs .frame{position:absolute;inset:0;z-index:1;box-shadow:0 44px 90px -60px color-mix(in oklab, var(--k) 70%, #000)}' +
+      '#khs .frame{position:absolute;inset:0;z-index:1;overflow:hidden;isolation:isolate;border-radius:var(--radius);background:var(--sunk);' +
+      'box-shadow:0 44px 90px -60px color-mix(in oklab, var(--k) 70%, #000)}' +
       '#khs .layer{position:absolute;inset:0;will-change:clip-path}' +
       '#khs .layer + .layer{clip-path:circle(0% at 50% 100%)}' +
       '#khs .stage-meta{position:relative;z-index:1;display:flex;align-items:center;gap:1.3rem;min-height:2rem}' +
@@ -354,69 +322,66 @@
       '#khs .dots button[aria-current="true"]{width:30px;background:var(--c)}' +
       '#khs .now{display:flex;align-items:baseline;gap:.8rem;transition:opacity .35s ease}' +
       '#khs .now.swap{opacity:0}' +
-      '#khs .now-name{font-family:var(--display);font-style:italic;font-size:1.15rem;color:var(--ink)}' +
+      '#khs .now-name{font-family:var(--display);font-style:italic;font-size:1.15rem;color:var(--ink);white-space:nowrap}' +
       '#khs .svc{--ct:color-mix(in oklab, var(--c) var(--kmix), var(--ink));min-height:84svh;display:flex;flex-direction:column;' +
       'justify-content:center;padding-block:4rem;scroll-margin-top:calc(var(--top) + 1rem);opacity:var(--o,1);transform:translate3d(0,var(--dy,0px),0)}' +
-      '#khs .svc .tag{display:flex;align-items:center;gap:.75rem;color:var(--ct)}' +
-      '#khs .svc .tag::before{content:"";width:28px;height:1px;background:var(--c)}' +
-      '#khs .svc h3{font-size:clamp(2rem,4vw,3.3rem);line-height:1.04;margin-top:1.1rem}' +
+      '#khs .svc h3{font-size:clamp(2rem,4vw,3.3rem);line-height:1.04;position:relative;padding-top:1.3rem}' +
+      '#khs .svc h3::before{content:"";position:absolute;left:0;top:0;width:28px;height:2px;background:var(--c)}' +
       '#khs .svc .desc{color:var(--ink-2);margin-top:1.2rem;max-width:46ch}' +
+      '#khs .svc .desc + .desc{margin-top:.8rem}' +
       '#khs .svc .aside{margin-top:.8rem;font-size:.9rem;color:var(--muted);max-width:46ch}' +
-      '#khs .prices{list-style:none;margin:1.6rem 0 0;padding:0;max-width:470px;border-top:1px solid var(--rule)}' +
+      '#khs .prices{list-style:none;margin:1.6rem 0 0;padding:0;max-width:500px;border-top:1px solid var(--rule)}' +
       '#khs .prices li{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:1.2rem;padding:.8rem 0;border-bottom:1px solid var(--rule-soft)}' +
       '#khs .prices .dur{font-size:.95rem;color:var(--ink-2)}' +
-      '#khs .prices .amt{font-family:var(--display);font-weight:400;font-size:1.6rem;line-height:1.1;color:var(--ink);font-variant-numeric:tabular-nums}' +
+      '#khs .prices .amt{font-family:var(--display);font-weight:400;font-size:1.6rem;line-height:1.1;color:var(--ink);font-variant-numeric:tabular-nums;text-align:right}' +
       '#khs .buy{text-decoration:none;white-space:nowrap;padding:.5rem .95rem;border:1px solid var(--rule);border-radius:999px;' +
       'font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;font-weight:500;color:var(--ink-2);' +
       'transition:background .3s ease,border-color .3s ease,color .3s ease}' +
       '#khs .buy:hover{background:var(--ct);border-color:var(--ct);color:var(--paper)}' +
-      '#khs .packs-in{margin-top:1.9rem;max-width:470px}' +
-      '#khs .packs-in .label{display:flex;align-items:center;gap:.8rem}' +
-      '#khs .packs-in .label::after{content:"";flex:1;height:1px;background:var(--rule-soft)}' +
-      '#khs .pack-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.6rem;list-style:none;margin:.95rem 0 0;padding:0}' +
-      '#khs .pack-row li{display:flex;flex-direction:column;background:var(--raise);border:1px solid var(--rule-soft);border-radius:5px;padding:1rem .9rem 1.05rem}' +
-      '#khs .pack-row .n{display:flex;align-items:baseline;gap:.35rem}' +
-      '#khs .pack-row .n b{font-family:var(--display);font-weight:300;font-size:2rem;line-height:1;color:var(--ink)}' +
-      '#khs .pack-row .n span{font-size:.72rem;color:var(--muted)}' +
-      '#khs .pack-row .off{margin-top:.45rem;font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;font-weight:500;color:var(--ct)}' +
-      '#khs .pack-row .tot{margin-top:.75rem;font-family:var(--display);font-size:1.3rem;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}' +
-      '#khs .pack-row .per{margin-top:.3rem;font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums}' +
-      '#khs .pack-row .buy{margin-top:.95rem;text-align:center;padding:.45rem .5rem;font-size:.56rem;letter-spacing:.16em}' +
-      '#khs .packs-in .fine{margin-top:.85rem;font-size:.82rem;color:var(--muted)}' +
-      '@media (max-width:520px){#khs .pack-row{grid-template-columns:1fr}' +
-      '#khs .pack-row li{flex-direction:row;flex-wrap:wrap;align-items:center;gap:.2rem 1rem;padding:.8rem .9rem}' +
-      '#khs .pack-row .n{flex:none}#khs .pack-row .off,#khs .pack-row .tot,#khs .pack-row .per{margin-top:0}' +
-      '#khs .pack-row .tot{margin-left:auto}#khs .pack-row .buy{margin-top:0;flex:none}}' +
+
+      /* plans */
+      '#khs .plans-in{margin-top:1.9rem;max-width:500px}' +
+      '#khs .plans-in .label{display:flex;align-items:center;gap:.8rem}' +
+      '#khs .plans-in .label::after{content:"";flex:1;height:1px;background:var(--rule-soft)}' +
+      '#khs .plan-list{display:grid;gap:.6rem;list-style:none;margin:.95rem 0 0;padding:0}' +
+      '#khs .plan-list li{background:var(--raise);border:1px solid var(--rule-soft);border-left:2px solid var(--c);border-radius:var(--radius);padding:1rem 1.1rem 1.05rem}' +
+      '#khs .p-head{display:flex;align-items:baseline;justify-content:space-between;gap:1rem}' +
+      '#khs .p-name{font-family:var(--display);font-weight:400;font-size:1.18rem;line-height:1.2;color:var(--ink)}' +
+      '#khs .p-price{flex:none;font-family:var(--display);font-size:1.35rem;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}' +
+      '#khs .p-price small{font-family:var(--body);font-size:.72rem;color:var(--muted);margin-left:.15rem}' +
+      '#khs .p-desc{margin-top:.45rem;font-size:.9rem;line-height:1.55;color:var(--ink-2)}' +
+      '#khs .p-foot{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-top:.85rem}' +
+      '#khs .p-foot .per{font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;font-weight:500;color:var(--ct);font-variant-numeric:tabular-nums}' +
+      '#khs .p-foot .buy{padding:.45rem .85rem;font-size:.56rem;letter-spacing:.16em}' +
+
       '#khs .pill{display:inline-flex;align-items:center;gap:.8rem;align-self:flex-start;padding:.9rem 1.35rem;' +
       'border:1px solid var(--rule);border-radius:999px;font-size:.7rem;letter-spacing:.22em;text-transform:uppercase;' +
       'font-weight:500;text-decoration:none;color:var(--ink);transition:background .35s ease,border-color .35s ease,color .35s ease}' +
       '#khs .pill .arr{transition:transform .45s var(--ease)}#khs .pill:hover .arr{transform:translateX(4px)}' +
-      '#khs .svc .pill{margin-top:1.8rem}' +
-      '#khs .svc .pill:hover{background:var(--ct);border-color:var(--ct);color:var(--paper)}' +
       '#khs .pill.solid{background:var(--ink);border-color:var(--ink);color:var(--paper)}' +
       '#khs .pill.solid:hover{background:var(--kt);border-color:var(--kt)}' +
       '#khs .pill.line:hover{border-color:var(--kt);color:var(--kt)}' +
       '#khs .shot-inline{display:none}' +
       '@media (max-width:899px){#khs .svc-grid{grid-template-columns:minmax(0,1fr)}#khs .stage-col{display:none}' +
       '#khs .svc{min-height:0;padding-block:2.6rem 3.4rem;opacity:1;transform:none}' +
-      '#khs .shot-inline{display:block;position:relative;width:min(100%,400px);aspect-ratio:4/5;margin-bottom:2.2rem;' +
-      'border-radius:999px 999px 6px 6px;overflow:hidden;background:var(--sunk)}' +
+      '#khs .shot-inline{display:block;width:100%;max-width:520px;margin-bottom:2.2rem}' +
       '#khs .shot-inline .reveal{position:absolute;inset:0;clip-path:circle(var(--r,130%) at 50% 100%)}}' +
+      '@media (max-width:420px){#khs .prices li{gap:.8rem}#khs .prices .amt{font-size:1.35rem}}' +
 
       /* book */
       '#khs .cta{display:grid;grid-template-columns:minmax(0,.72fr) minmax(0,1fr);gap:clamp(2rem,6vw,6rem);align-items:center;' +
       'padding-block:clamp(4.5rem,11vh,8rem);border-top:1px solid var(--rule-soft)}' +
-      '#khs .cta .arch{width:100%;max-width:370px;aspect-ratio:4/5;justify-self:center}' +
+      '#khs .cta .portrait{width:100%;max-width:340px;justify-self:center}' +
       '#khs .cta h2{font-size:clamp(2.7rem,7vw,5.8rem);line-height:.97;margin-top:1rem}' +
       '#khs .cta h2 em{font-style:italic;color:var(--kt)}' +
       '#khs .cta .lede{color:var(--ink-2);margin-top:1.4rem;max-width:44ch}' +
       '#khs .actions{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:2.3rem}' +
-      '@media (max-width:760px){#khs .cta{grid-template-columns:minmax(0,1fr)}#khs .cta .arch{max-width:250px;justify-self:start}}' +
+      '@media (max-width:760px){#khs .cta{grid-template-columns:minmax(0,1fr)}#khs .cta .portrait{max-width:260px;justify-self:start}}' +
 
       '@media (prefers-reduced-motion:reduce){#khs{transition:none}' +
       '#khs .svc-grid{grid-template-columns:minmax(0,1fr)}#khs .stage-col{display:none}' +
-      '#khs .svc{min-height:0;opacity:1;transform:none}#khs .shot-inline{display:block;position:relative;' +
-      'width:min(100%,400px);aspect-ratio:4/5;margin-bottom:2.2rem;border-radius:999px 999px 6px 6px;overflow:hidden;background:var(--sunk)}' +
+      '#khs .svc{min-height:0;opacity:1;transform:none}#khs .shot-inline{display:block;' +
+      'width:100%;max-width:520px;margin-bottom:2.2rem}' +
       '#khs .shot-inline .reveal{position:absolute;inset:0}}';
   }
 
@@ -501,16 +466,19 @@
     var all = function (sel) { return [].slice.call(root.querySelectorAll(sel)); };
 
     var hero = q('.hero');
-    var arches = all('.trio .arch');
+    var shapes = all('.trio .shape');
     var ribbon = q('.ribbon');
     var lines = all('.ribbon .line');
     var svcs = all('.svc');
+    var stage = q('.stage');
+    var frameWrap = q('.frame-wrap');
     var layers = all('.stage .layer');
     var inlines = svcs.map(function (s) { return s.querySelector('.shot-inline'); });
-    var portrait = q('.cta .arch');
+    var portrait = q('.cta .portrait');
     var zones = all('[data-hue]');
     var dotsEl = q('.dots');
     var now = q('.now'), nowName = q('.now-name'), nowFrom = q('.now-from');
+    var ratios = svcs.map(function (s) { return parseFloat(s.getAttribute('data-ar')) || 1; });
 
     var mqStill = matchMedia('(prefers-reduced-motion: reduce)');
     var mqWide = matchMedia('(min-width: 900px)');
@@ -534,6 +502,16 @@
     function docTop(el) { var t = 0; while (el) { t += el.offsetTop; el = el.offsetParent; } return t; }
     function box(el) { return { top: docTop(el), h: el.offsetHeight }; }
 
+    // Frames follow the real shape of whatever photo loads into them.
+    function syncRatio(img) {
+      var r = img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 0;
+      if (!r) return;
+      var shape = img.closest('.shape');
+      if (shape) shape.style.setProperty('--ar', r.toFixed(4));
+      var layer = img.closest('.layer');
+      if (layer) ratios[layers.indexOf(layer)] = r;
+    }
+
     var M = {};
     function measure() {
       M.vw = innerWidth; M.vh = innerHeight;
@@ -544,9 +522,19 @@
       M.inlines = inlines.map(function (el) { return el.offsetParent ? box(el) : null; });
       M.portrait = box(portrait);
       M.zones = zones.map(function (z) { var b = box(z); b.hue = z.getAttribute('data-hue'); return b; });
+      M.stageW = stage.clientWidth;
+      M.stageH = Math.min(M.vh * 0.62, 580);
     }
 
-    var lastHue = '', lastActive = 0, SPEEDS = [0.10, 0.24, 0.04];
+    // Size the sticky frame for a given photo shape: as large as fits the column.
+    function sizeFrame(r) {
+      var w = Math.min(M.stageW, M.stageH * r), h = w / r;
+      frameWrap.style.width = w.toFixed(1) + 'px';
+      frameWrap.style.height = h.toFixed(1) + 'px';
+      frameWrap.style.aspectRatio = 'auto';
+    }
+
+    var lastHue = '', lastActive = 0, SPEEDS = [0.10, 0.24, 0.05];
 
     function render(y) {
       var vh = M.vh, mid = y + vh / 2;
@@ -558,7 +546,7 @@
       if (still) return;
 
       var k = Math.min(Math.max(y - M.hero.top, 0), M.hero.h);
-      arches.forEach(function (a, i) {
+      shapes.forEach(function (a, i) {
         a.style.transform = 'translate3d(0,' + (-k * SPEEDS[i]).toFixed(1) + 'px,0)';
         a.firstElementChild.style.transform = 'scale(' + (1.1 - 0.1 * clamp(k / vh)).toFixed(4) + ')';
       });
@@ -566,11 +554,11 @@
       var qy = clamp((y + vh - M.ribbon.top) / (vh + M.ribbon.h));
       lines.forEach(function (l, i) {
         var travel = Math.min(Math.max(0, M.lineW[i] - M.vw), M.vw * 0.55);
-        l.style.transform = 'translate3d(' + (i % 2 ? -travel * (1 - qy) : -travel * qy).toFixed(1) + 'px,0,0)';
+        l.style.transform = 'translate3d(' + (-travel * qy).toFixed(1) + 'px,0,0)';
       });
 
       if (wide) {
-        var active = 0;
+        var active = 0, r = ratios[0];
         M.svcs.forEach(function (b, i) {
           var t = b.top - y;
           if (t < vh * 0.5) active = i;
@@ -582,8 +570,11 @@
             layers[i].style.clipPath = e >= 1 ? 'none' : 'circle(' + (e * 130).toFixed(2) + '% at 50% 100%)';
             layers[i].firstElementChild.style.transform =
               'translate3d(0,' + ((1 - e) * 7).toFixed(2) + '%,0) scale(' + (1.14 - 0.14 * e).toFixed(4) + ')';
+            // the frame morphs toward this photo's shape as it opens
+            r += (ratios[i] - r) * e;
           }
         });
+        sizeFrame(r);
         if (active !== lastActive) {
           lastActive = active;
           dots.forEach(function (b, j) { b.setAttribute('aria-current', j === active ? 'true' : 'false'); });
@@ -606,16 +597,17 @@
 
       var pp = clamp((vh - (M.portrait.top - y)) / (vh + M.portrait.h));
       portrait.firstElementChild.style.transform =
-        'translate3d(0,' + ((0.5 - pp) * 9).toFixed(2) + '%,0) scale(1.06)';
+        'translate3d(0,' + ((0.5 - pp) * 7).toFixed(2) + '%,0) scale(1.04)';
     }
 
     function clearMotion() {
       svcs.forEach(function (s) { s.style.removeProperty('--o'); s.style.removeProperty('--dy'); });
       layers.forEach(function (l) { l.style.clipPath = ''; l.firstElementChild.style.transform = ''; });
       inlines.forEach(function (el) { el.style.removeProperty('--r'); el.querySelector('.fill').style.transform = ''; });
-      arches.forEach(function (a) { a.style.transform = ''; a.firstElementChild.style.transform = ''; });
+      shapes.forEach(function (a) { a.style.transform = ''; a.firstElementChild.style.transform = ''; });
       lines.forEach(function (l) { l.style.transform = ''; });
       portrait.firstElementChild.style.transform = '';
+      frameWrap.style.width = ''; frameWrap.style.height = ''; frameWrap.style.aspectRatio = '';
     }
 
     var target = scrollY, current = scrollY, raf = 0;
@@ -661,10 +653,13 @@
       teardown.push(function () { ro.disconnect(); });
     }
 
-    // images arrive late on a CDN — re-measure as each one lands
+    // images arrive late on a CDN — fit each frame and re-measure as they land
     all('img').forEach(function (img) {
-      if (img.complete) return;
-      img.addEventListener('load', function () { if (root) { measure(); render(current); } }, { once: true });
+      if (img.complete) { syncRatio(img); return; }
+      img.addEventListener('load', function () {
+        if (!root) return;
+        syncRatio(img); measure(); render(current);
+      }, { once: true });
     });
 
     if (document.fonts && document.fonts.ready) {
